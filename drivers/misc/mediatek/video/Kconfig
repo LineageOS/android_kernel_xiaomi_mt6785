@@ -20,6 +20,12 @@ config MTK_VIDEOX
 	  If you want to use Meditek display driver, please make sure it is Y in xxx_defconfig.mk.
 	  If unsure, set N.
 
+config MTK_VIDEOX_LINEAGE_LIVEDISPLAY
+	bool CONFIG_MTK_VIDEOX_LINEAGE_LIVEDISPLAY
+	default n
+	help
+	  Enables the RGB interface for color calibration using LineageOS's LiveDisplay.
+
 config MTK_LCM_PHYSICAL_ROTATION
 	string "define LCM PHYSICAL ROTATION"
 	help

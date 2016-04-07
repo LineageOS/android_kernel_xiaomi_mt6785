@@ -286,9 +286,12 @@ static int disp_gamma_set_lut
 
 	if (copy_from_user(gamma_lut, user_gamma_lut,
 		sizeof(struct DISP_GAMMA_LUT_T)) != 0) {
+		GAMMA_ERR("disp_gamma_set_lut: cannot copy from user mem");
 		ret = -EFAULT;
 		kfree(gamma_lut);
-	} else {
+	}
+
+	if (!ret) {
 		id = gamma_lut->hw_id;
 		if (id >= 0 && id < DISP_GAMMA_TOTAL) {
 			mutex_lock(&g_gamma_global_lock);

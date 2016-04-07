@@ -107,6 +107,13 @@ static dev_t mtk_disp_mgr_devno;
 static struct cdev *mtk_disp_mgr_cdev;
 static struct class *mtk_disp_mgr_class;
 
+#ifdef CONFIG_MTK_VIDEOX_LINEAGE_LIVEDISPLAY
+static struct mtk_rgb_work_queue {
+        struct work_struct work;
+	struct mutex lock;
+} mtk_rgb_work_queue;
+#endif
+
 /*---------------- variable for repaint start ------------------*/
 static DEFINE_MUTEX(repaint_queue_lock);
 static DECLARE_WAIT_QUEUE_HEAD(repaint_wq);
@@ -1994,8 +2001,83 @@ static struct platform_device mtk_disp_mgr_device = {
 	.num_resources = 0,
 };
 
+#ifdef CONFIG_MTK_VIDEOX_LINEAGE_LIVEDISPLAY
+#define MAX_LUT_SCALE 2000
+#define PROGRESSION_SCALE 1000
+static u32 mtk_disp_ld_r = MAX_LUT_SCALE;
+static u32 mtk_disp_ld_g = MAX_LUT_SCALE;
+static u32 mtk_disp_ld_b = MAX_LUT_SCALE;
+
+static ssize_t mtk_disp_ld_get_rgb(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%d %d %d\n", mtk_disp_ld_r, mtk_disp_ld_g, mtk_disp_ld_b);
+}
+
+/**
+ * The default gamma array is an arithmetic progression with alpha=2 and n0=0 and
+ * n = 512.
+ *
+ * We scale it linearly with the color passed to this RGB interface. The display
+ * subsystem has a color precision of 10 bits which means that values from [0-1024[
+ * are acceptable.
+ *
+ * In order to avoid floating point computations in kernel space we scale the alpha
+ * value by 1000 and then scale back the result using integer division.
+ */
+static ssize_t mtk_disp_ld_set_rgb(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	int r = MAX_LUT_SCALE, g = MAX_LUT_SCALE, b = MAX_LUT_SCALE;
+
+	if (count > 19)
+		return -EINVAL;
+
+	sscanf(buf, "%d %d %d", &r, &g, &b);
+
+	if (r < 0 || r > MAX_LUT_SCALE) return -EINVAL;
+	if (g < 0 || g > MAX_LUT_SCALE) return -EINVAL;
+	if (b < 0 || b > MAX_LUT_SCALE) return -EINVAL;
+
+	cancel_work_sync(&mtk_rgb_work_queue.work);
+	mtk_disp_ld_r = r;
+	mtk_disp_ld_g = g;
+	mtk_disp_ld_b = b;
+	schedule_work(&mtk_rgb_work_queue.work);
+
+	return count;
+}
+
+static DEVICE_ATTR(rgb, S_IRUGO | S_IWUSR | S_IWGRP, mtk_disp_ld_get_rgb, mtk_disp_ld_set_rgb);
+
+static void mtk_disp_rgb_work(struct work_struct *work) {
+        struct mtk_rgb_work_queue *rgb_wq = container_of(work, struct mtk_rgb_work_queue, work);
+	int r = mtk_disp_ld_r, g = mtk_disp_ld_g, b = mtk_disp_ld_b;
+	int i, gammutR, gammutG, gammutB, ret;
+	struct DISP_GAMMA_LUT_T *gamma;
+
+	mutex_lock(&rgb_wq->lock);
+
+	gamma = kzalloc(sizeof(struct DISP_GAMMA_LUT_T), GFP_KERNEL);
+	gamma->hw_id = 0;
+	for (i = 0; i < 512; i++) {
+		gammutR = i * r / PROGRESSION_SCALE;
+		gammutG = i * g / PROGRESSION_SCALE;
+		gammutB = i * b / PROGRESSION_SCALE;
+
+		gamma->lut[i] = GAMMA_ENTRY(gammutR, gammutG, gammutB);
+	}
+
+	ret = primary_display_user_cmd(DISP_IOCTL_SET_GAMMALUT, (unsigned long)gamma);
+
+	kfree(gamma);
+	mutex_unlock(&rgb_wq->lock);
+}
+#endif
+
 static int __init mtk_disp_mgr_init(void)
 {
+ 	int rc = 0;
 	pr_debug("%s\n", __func__);
 	if (platform_device_register(&mtk_disp_mgr_device))
 		return -ENODEV;
@@ -2005,11 +2087,22 @@ static int __init mtk_disp_mgr_init(void)
 		return -ENODEV;
 	}
 
-	return 0;
+#ifdef CONFIG_MTK_VIDEOX_LINEAGE_LIVEDISPLAY
+	rc = sysfs_create_file(&(mtk_disp_mgr_device.dev.kobj), &dev_attr_rgb.attr);
+	mutex_init(&mtk_rgb_work_queue.lock);
+	INIT_WORK(&mtk_rgb_work_queue.work, mtk_disp_rgb_work);
+#endif
+
+	return rc;
 }
 
 static void __exit mtk_disp_mgr_exit(void)
 {
+
+#ifdef CONFIG_MTK_VIDEOX_LINEAGE_LIVEDISPLAY
+	mutex_destroy(&mtk_rgb_work_queue.lock);
+	sysfs_remove_file(&(mtk_disp_mgr_device.dev.kobj), &dev_attr_rgb.attr);
+#endif
 	cdev_del(mtk_disp_mgr_cdev);
 	unregister_chrdev_region(mtk_disp_mgr_devno, 1);
 
