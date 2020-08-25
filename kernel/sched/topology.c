@@ -1052,8 +1052,9 @@ static inline int sched_group_energy_equal(const struct sched_group_energy *a,
 	((e->cap_states[n].cap << SCHED_CAPACITY_SHIFT)/cap_state_power(e, n))
 #else
 	/* to enlarge the difference of energy_eff */
+#define CPU_CAP_HIGH_RES 6
 #define energy_eff(e, n) \
-	((e->cap_states[n].cap << (SCHED_CAPACITY_SHIFT+6)) \
+	((e->cap_states[n].cap << (SCHED_CAPACITY_SHIFT + CPU_CAP_HIGH_RES)) \
 		/cap_state_power(e, n))
 #endif
 
@@ -1282,7 +1283,7 @@ sd_init(struct sched_domain_topology_level *tl,
 		sd_flags = (*tl->sd_flags)();
 	if (WARN_ONCE(sd_flags & ~TOPOLOGY_SD_FLAGS,
 			"wrong sd_flags in topology description\n"))
-		sd_flags &= ~TOPOLOGY_SD_FLAGS;
+		sd_flags &= TOPOLOGY_SD_FLAGS;
 
 	*sd = (struct sched_domain){
 		.min_interval		= sd_weight,

@@ -34,7 +34,7 @@
 #endif
 
 #if defined(CONFIG_MACH_MT6739)
-#include <mtk_pmic_api_buck.h>
+#include "pmic_api_buck.h"
 #include <mt-plat/mtk_rtc.h>
 #endif
 
@@ -56,7 +56,7 @@
 
 #ifdef CONFIG_MTK_TINYSYS_SSPM_SUPPORT
 #include <sspm_define.h>
-#include <sspm_timesync.h>
+#include <v1/sspm_timesync.h>
 #endif
 
 /**************************************

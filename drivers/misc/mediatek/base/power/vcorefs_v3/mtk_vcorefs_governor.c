@@ -26,6 +26,7 @@
 #include <mt-plat/upmu_common.h>
 #endif
 #include <mtk_vcorefs_manager.h>
+#include <mt-plat/mtk_boot.h>
 
 #include <mtk_spm_vcore_dvfs.h>
 #if defined(CONFIG_MTK_DRAMC)
@@ -40,7 +41,7 @@
 #include <helio-dvfsrc-opp.h>
 #include <mtk_spm_vcore_dvfs_ipi.h>
 #ifdef CONFIG_MTK_TINYSYS_SSPM_SUPPORT
-#include <sspm_ipi.h>
+#include <v1/sspm_ipi.h>
 #include <sspm_ipi_pin.h>
 #endif
 
@@ -235,9 +236,17 @@ bool is_vcorefs_feature_enable(void)
 	}
 
 	if (!spm_load_firmware_status()) {
-		vcorefs_err("SPM FIRMWARE IS NOT READY\n");
+		if (get_boot_mode() != RECOVERY_BOOT)
+			vcorefs_err("SPM FIRMWARE IS NOT READY\n");
 		return false;
 	}
+#if defined(CONFIG_MACH_MT6771)
+	if (__spm_get_dram_type() == SPMFW_LP4_2CH_2400 &&
+		spm_load_firmware_status() == 2) {
+		vcorefs_err("LP4 2400 SPM FIRMWARE IS NOT READY\n");
+		return false;
+	}
+#endif
 	if (!vcorefs_vcore_dvs_en() && !vcorefs_dram_dfs_en()) {
 		vcorefs_err("DISABLE DVFS DUE TO BOTH DVS & DFS DISABLE\n");
 		return false;

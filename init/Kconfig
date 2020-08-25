@@ -109,6 +109,15 @@ config LOCALVERSION_AUTO
 
 	  which is done within the script "scripts/setlocalversion".)
 
+config BUILD_SALT
+       string "Build ID Salt"
+       default ""
+       help
+          The build ID is used to link binaries and their debug info. Setting
+          this option will use the value in the calculation of the build id.
+          This is mostly useful for distributions which want to ensure the
+          build is unique between builds. It's safe to leave the default.
+
 config HAVE_KERNEL_GZIP
 	bool
 
@@ -680,6 +689,17 @@ config UCLAMP_MAP_OPP
 	  This feature map utilization clamping value to cpu opp capacity.
 
 	  If in doubt, say N.
+
+config NONLINEAR_FREQ_CTL
+	bool "Non-linear frequency control"
+	depends on MTK_CPU_FREQ
+	depends on MTK_UNIFY_POWER
+	default n
+	help
+	  Use power table capacity to control DVFS, cpu capacity/
+	  loading tracking/opp calculation will be affected.
+	  If unsure, say N.
+
 endmenu
 
 menu "FAIR Scheuler tunables"
