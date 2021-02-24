@@ -318,7 +318,7 @@ static void rproc_vdev_do_stop(struct rproc_subdev *subdev, bool crashed)
 /**
  * rproc_handle_vdev() - handle a vdev fw resource
  * @rproc: the remote processor
- * @rsc: the vring resource descriptor
+ * @ptr: the vring resource descriptor
  * @avail: size of available data (for sanity checking the image)
  *
  * This resource entry requests the host to statically register a virtio
@@ -342,9 +342,10 @@ static void rproc_vdev_do_stop(struct rproc_subdev *subdev, bool crashed)
  *
  * Returns 0 on success, or an appropriate error code otherwise
  */
-static int rproc_handle_vdev(struct rproc *rproc, struct fw_rsc_vdev *rsc,
+static int rproc_handle_vdev(struct rproc *rproc, void *ptr,
 			     int offset, int avail)
 {
+	struct fw_rsc_vdev *rsc = ptr;
 	struct device *dev = &rproc->dev;
 	struct rproc_vdev *rvdev;
 	int i, ret;
@@ -437,7 +438,7 @@ void rproc_vdev_release(struct kref *ref)
 /**
  * rproc_handle_trace() - handle a shared trace buffer resource
  * @rproc: the remote processor
- * @rsc: the trace resource descriptor
+ * @ptr: the trace resource descriptor
  * @avail: size of available data (for sanity checking the image)
  *
  * In case the remote processor dumps trace logs into memory,
@@ -450,12 +451,13 @@ void rproc_vdev_release(struct kref *ref)
  *
  * Returns 0 on success, or an appropriate error code otherwise
  */
-static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
+static int rproc_handle_trace(struct rproc *rproc, void *ptr,
 			      int offset, int avail)
 {
+	struct fw_rsc_trace *rsc = ptr;
 	struct rproc_mem_entry *trace;
 	struct device *dev = &rproc->dev;
-	void *ptr;
+	void *va;
 	char name[15];
 
 	if (sizeof(*rsc) > avail) {
@@ -470,8 +472,8 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
 	}
 
 	/* what's the kernel address of this resource ? */
-	ptr = rproc_da_to_va(rproc, rsc->da, rsc->len);
-	if (!ptr) {
+	va = rproc_da_to_va(rproc, rsc->da, rsc->len);
+	if (!va) {
 		dev_err(dev, "erroneous trace resource entry\n");
 		return -EINVAL;
 	}
@@ -482,7 +484,7 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
 
 	/* set the trace buffer dma properties */
 	trace->len = rsc->len;
-	trace->va = ptr;
+	trace->va = va;
 
 	/* make sure snprintf always null terminates, even if truncating */
 	snprintf(name, sizeof(name), "trace%d", rproc->num_traces);
@@ -508,7 +510,7 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
 /**
  * rproc_handle_devmem() - handle devmem resource entry
  * @rproc: remote processor handle
- * @rsc: the devmem resource entry
+ * @ptr: the devmem resource entry
  * @avail: size of available data (for sanity checking the image)
  *
  * Remote processors commonly need to access certain on-chip peripherals.
@@ -530,9 +532,10 @@ static int rproc_handle_trace(struct rproc *rproc, struct fw_rsc_trace *rsc,
  * and not allow firmwares to request access to physical addresses that
  * are outside those ranges.
  */
-static int rproc_handle_devmem(struct rproc *rproc, struct fw_rsc_devmem *rsc,
+static int rproc_handle_devmem(struct rproc *rproc, void *ptr,
 			       int offset, int avail)
 {
+	struct fw_rsc_devmem *rsc = ptr;
 	struct rproc_mem_entry *mapping;
 	struct device *dev = &rproc->dev;
 	int ret;
@@ -586,7 +589,7 @@ out:
 /**
  * rproc_handle_carveout() - handle phys contig memory allocation requests
  * @rproc: rproc handle
- * @rsc: the resource entry
+ * @ptr: the resource entry
  * @avail: size of available data (for image validation)
  *
  * This function will handle firmware requests for allocation of physically
@@ -602,9 +605,10 @@ out:
  * pressure is important; it may have a substantial impact on performance.
  */
 static int rproc_handle_carveout(struct rproc *rproc,
-				 struct fw_rsc_carveout *rsc,
+				 void *ptr,
 				 int offset, int avail)
 {
+	struct fw_rsc_carveout *rsc = ptr;
 	struct rproc_mem_entry *carveout, *mapping;
 	struct device *dev = &rproc->dev;
 	dma_addr_t dma;
@@ -728,10 +732,10 @@ free_carv:
  * enum fw_resource_type.
  */
 static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
-	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
-	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
-	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
-	[RSC_VDEV] = (rproc_handle_resource_t)rproc_handle_vdev,
+	[RSC_CARVEOUT] = rproc_handle_carveout,
+	[RSC_DEVMEM] = rproc_handle_devmem,
+	[RSC_TRACE] = rproc_handle_trace,
+	[RSC_VDEV] = rproc_handle_vdev,
 };
 
 /* handle firmware resource entries before booting the remote processor */
