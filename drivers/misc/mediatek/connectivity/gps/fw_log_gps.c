@@ -217,7 +217,7 @@ err_out:
 }
 
 /*****************************************************************************/
-static void __exit gps_fw_log_exit(void)
+static void gps_fw_log_exit(void)
 {
 	if (!logdevobj) {
 		pr_err("null pointer: %p\n", logdevobj);

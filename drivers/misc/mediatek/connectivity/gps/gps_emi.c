@@ -467,7 +467,7 @@ err_out:
 }
 
 /*****************************************************************************/
-static void __exit gps_emi_mod_exit(void)
+static void gps_emi_mod_exit(void)
 {
 	if (!devobj) {
 		GPS_ERR("null pointer: %p\n", devobj);
