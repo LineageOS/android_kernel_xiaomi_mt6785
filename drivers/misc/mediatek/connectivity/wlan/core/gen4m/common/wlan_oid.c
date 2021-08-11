@@ -11485,7 +11485,7 @@ wlanoidSetNvramWrite(IN struct ADAPTER *prAdapter,
 	rNvRwInfo = (struct PARAM_CUSTOM_EEPROM_RW_STRUCT *)
 			pvSetBuffer;
 
-	if (rNvRwInfo->ucMethod == PARAM_EEPROM_WRITE_NVRAM)
+	if (rNvRwInfo->ucMethod == PARAM_EEPROM_WRITE_NVRAM) {
 		fgStatus = kalCfgDataWrite8(prAdapter->prGlueInfo,
 			rNvRwInfo->info.rNvram.u2NvIndex,
 			rNvRwInfo->info.rNvram.u2NvData & 0x00FF);
@@ -11499,7 +11499,7 @@ wlanoidSetNvramWrite(IN struct ADAPTER *prAdapter,
 		if (fgStatus == TRUE)
 			wlanLoadManufactureData(prAdapter,
 				kalGetConfiguration(prAdapter->prGlueInfo));
-	else
+	} else
 		fgStatus = kalCfgDataWrite16(prAdapter->prGlueInfo,
 				     rNvRwInfo->info.rEeprom.ucEepromIndex <<
 				     1, /* change to byte offset */
