@@ -163,7 +163,7 @@ static int bt_fb_notifier_callback(struct notifier_block
 	case FB_BLANK_UNBLANK:
 	case FB_BLANK_POWERDOWN:
 		if(btonflag == 1 && rstflag == 0) {
-			BT_LOG_PRT_INFO("blank state [%ld]", blank);
+			BT_LOG_PRT_INFO("blank state [%d]", blank);
 			bt_read_cr("HOST_MAILBOX_BT_ADDR", 0x18007124);
 		}
 		break;
@@ -428,7 +428,7 @@ ssize_t BT_write_iter(struct kiocb *iocb, struct iov_iter *from)
 			goto OUT;
 		}
 
-		BT_LOG_PRT_DBG_RAW(o_buf, count, "%s: len[%d], TX: ", __func__, count);
+		BT_LOG_PRT_DBG_RAW(o_buf, count, "%s: len[%lx], TX: ", __func__, count);
 		retval = __bt_write(o_buf, count);
 	}
 
@@ -464,7 +464,7 @@ ssize_t BT_write(struct file *filp, const char __user *buf, size_t count, loff_t
 			goto OUT;
 		}
 
-		BT_LOG_PRT_DBG_RAW(o_buf, count, "%s: len[%d], TX: ", __func__, count);
+		BT_LOG_PRT_DBG_RAW(o_buf, count, "%s: len[%lx], TX: ", __func__, count);
 		retval = __bt_write(o_buf, count);
 	}
 
