@@ -505,7 +505,7 @@ static INT32 _hif_sdio_wake_up_ctrl(MTK_WCN_HIF_SDIO_CLTCTX ctx)
 			else
 				HIF_SDIO_INFO_FUNC("read CCCR value(0x%x), address(0x%x)\n",
 						   cccr_value, CCCR_F8 + i);
-				cccr_value = 0x0;
+			cccr_value = 0x0;
 			}
 
 			HIF_SDIO_INFO_FUNC("read cpupcr info !\n");
