@@ -655,7 +655,7 @@ void nic_txd_v1_set_pkt_fixed_rate_option_full(
 	u_int8_t fgBeamforming,
 	uint8_t ucAntennaIndex)
 {
-	struct HW_MAC_TX_DESC rTxDesc;
+	struct HW_MAC_TX_DESC rTxDesc = {};
 	struct HW_MAC_TX_DESC *prTxDesc = &rTxDesc;
 
 	kalMemZero(prTxDesc, NIC_TX_DESC_LONG_FORMAT_LENGTH);
@@ -695,7 +695,7 @@ void nic_txd_v1_set_pkt_fixed_rate_option(
 	u_int8_t fgShortGI,
 	u_int8_t fgDynamicBwRts)
 {
-	struct HW_MAC_TX_DESC rTxDesc;
+	struct HW_MAC_TX_DESC rTxDesc = {};
 	struct HW_MAC_TX_DESC *prTxDesc = &rTxDesc;
 
 	kalMemZero(prTxDesc, NIC_TX_DESC_LONG_FORMAT_LENGTH);
