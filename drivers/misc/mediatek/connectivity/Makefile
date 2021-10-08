@@ -46,24 +46,13 @@ endif
 
         # for gen4m options
         export CONFIG_MTK_COMBO_WIFI_HIF=axi
+	export MTK_COMBO_CHIP=CONNAC
         export WLAN_CHIP_ID=6785
         export MTK_ANDROID_WMT=y
         export MTK_ANDROID_EMI=y
         export ADAPTOR_OPTS=$(MTK_COMBO_CHIP)
-
-        WLAN_IP_SET_1_SERIES := 6765 6761 6885 6893
-        WLAN_IP_SET_2_SERIES := 3967 6785
-        WLAN_IP_SET_3_SERIES := 6779 6873 6853
-        ifneq ($(filter $(WLAN_IP_SET_3_SERIES), $(WLAN_CHIP_ID)),)
-            $(info WIFI_IP_SET is 3)
-            export WIFI_IP_SET=3
-        else ifneq ($(filter $(WLAN_IP_SET_2_SERIES), $(WLAN_CHIP_ID)),)
-            $(info WIFI_IP_SET is 2)
-            export WIFI_IP_SET=2
-        else
-            $(info WIFI_IP_SET is 1)
-            export WIFI_IP_SET=1
-        endif
+	export WIFI_IP_SET=2
+	export WIFI_ECO_VER=1
 
         # Do build-in for xxx.c checking
         subdir-ccflags-y += -D MTK_WCN_REMOVE_KERNEL_MODULE
