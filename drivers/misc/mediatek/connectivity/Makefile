@@ -67,7 +67,11 @@ endif
 obj-$(CONFIG_MTK_COMBO_BT) += bt/mt66xx/legacy/
 
 # FMRadio
-obj-$(CONFIG_MTK_FMRADIO) += fmradio/
+ifeq ($(CONFIG_MTK_FMRADIO),y)
+    export CFG_FM_CHIP_ID=6785
+    export CFG_FM_CHIP=mt6631
+    obj-y += fmradio/
+endif
 
 # GPS
 obj-$(CONFIG_MTK_COMBO_GPS) += gps/
