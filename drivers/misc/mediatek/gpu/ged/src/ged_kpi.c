@@ -225,6 +225,7 @@ struct GED_KPI_GPU_TS {
 	unsigned long i32FrameID;
 	struct dma_fence_cb sSyncWaiter;
 	struct dma_fence *psSyncFence;
+	struct work_struct sWork;
 } GED_KPI_GPU_TS;
 
 /* defined struct for querying from MEOW */
@@ -251,6 +252,8 @@ static int target_fps_4_main_head = 60;
 static long long vsync_period = GED_KPI_SEC_DIVIDER / GED_KPI_MAX_FPS;
 static GED_LOG_BUF_HANDLE ghLogBuf_KPI;
 static struct workqueue_struct *g_psWorkQueue;
+static struct workqueue_struct *g_FenceWorkQueue;
+
 static GED_HASHTABLE_HANDLE gs_hashtable;
 
 #ifdef GED_ENABLE_TIMER_BASED_DVFS_MARGIN
@@ -2134,6 +2137,22 @@ static GED_ERROR ged_kpi_timeS(int pid, u64 ullWdnd, int i32FrameID)
 		ullWdnd, i32FrameID, -1, -1, NULL);
 }
 /* ------------------------------------------------------------------- */
+/* To prevent deadlock from fence_signal_lock when fence refcount
+ * might be decreased to 0 in our fence callback function,
+ * we decrease refcount by creating a new workqueue job.
+ */
+static void ged_kpi_fence_put_cb(struct work_struct *psWork)
+{
+	struct GED_KPI_GPU_TS *psMonitor;
+
+	psMonitor =
+	GED_CONTAINER_OF(psWork, struct GED_KPI_GPU_TS, sWork);
+
+	if (psMonitor != NULL) {
+		dma_fence_put(psMonitor->psSyncFence);
+		ged_free(psMonitor, sizeof(struct GED_KPI_GPU_TS));
+	}
+}
 static
 void ged_kpi_pre_fence_sync_cb(struct dma_fence *sFence,
 	struct dma_fence_cb *waiter)
@@ -2146,8 +2165,8 @@ void ged_kpi_pre_fence_sync_cb(struct dma_fence *sFence,
 	ged_kpi_timeP(psMonitor->pid, psMonitor->ullWdnd,
 		psMonitor->i32FrameID);
 
-	dma_fence_put(psMonitor->psSyncFence);
-	ged_free(psMonitor, sizeof(struct GED_KPI_GPU_TS));
+	INIT_WORK(&psMonitor->sWork, ged_kpi_fence_put_cb);
+	queue_work(g_FenceWorkQueue, &psMonitor->sWork);
 }
 /* ------------------------------------------------------------------- */
 static
@@ -2162,8 +2181,8 @@ void ged_kpi_gpu_3d_fence_sync_cb(struct dma_fence *sFence,
 	ged_kpi_time2(psMonitor->pid, psMonitor->ullWdnd,
 		psMonitor->i32FrameID);
 
-	dma_fence_put(psMonitor->psSyncFence);
-	ged_free(psMonitor, sizeof(struct GED_KPI_GPU_TS));
+	INIT_WORK(&psMonitor->sWork, ged_kpi_fence_put_cb);
+	queue_work(g_FenceWorkQueue, &psMonitor->sWork);
 }
 #endif /* MTK_GED_KPI */
 /* ------------------------------------------------------------------- */
@@ -2420,7 +2439,10 @@ GED_ERROR ged_kpi_system_init(void)
 	g_psWorkQueue =
 		alloc_ordered_workqueue("ged_kpi",
 			WQ_FREEZABLE | WQ_MEM_RECLAIM);
-	if (g_psWorkQueue) {
+	g_FenceWorkQueue =
+		alloc_ordered_workqueue("ged_fence",
+			WQ_FREEZABLE | WQ_MEM_RECLAIM);
+	if (g_psWorkQueue && g_FenceWorkQueue) {
 		int i;
 
 		memset(g_asKPI, 0, sizeof(g_asKPI));
@@ -2453,6 +2475,7 @@ void ged_kpi_system_exit(void)
 	spin_unlock_irqrestore(&gs_hashtableLock, ulIRQFlags);
 #endif /* GED_ENABLE_TIMER_BASED_DVFS_MARGIN */
 	destroy_workqueue(g_psWorkQueue);
+	destroy_workqueue(g_FenceWorkQueue);
 	ged_thread_destroy(ghThread);
 #ifndef GED_BUFFER_LOG_DISABLE
 	ged_log_buf_free(ghLogBuf_KPI);
