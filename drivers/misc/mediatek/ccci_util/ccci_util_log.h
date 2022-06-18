@@ -14,11 +14,14 @@
 #ifndef __CCCI_UTIL_LOG_H__
 #define __CCCI_UTIL_LOG_H__
 
+#if defined(CONFIG_MTK_AEE_FEATURE)
 extern void mrdump_mini_add_misc(unsigned long addr, unsigned long size,
 	unsigned long start, char *name);
 
 extern void mrdump_mini_add_misc_pa(unsigned long va, unsigned long pa,
 		unsigned long size, unsigned long start, char *name);
+#endif
+
 /* #define BRING_UP_LOG_MODE */
 #ifndef BRING_UP_LOG_MODE
 /* ------------------------------------------------------------------------- */

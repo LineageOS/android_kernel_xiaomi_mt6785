@@ -929,6 +929,7 @@ static void ccci_dump_buffer_init(void)
 		}
 	}
 
+#if defined(CONFIG_MTK_AEE_FEATURE)
 	/*
 	 *kernel __pa is available for LM VA
 	 *so, if it's belongs to ioremap/vmap for DTS reserved memory
@@ -952,6 +953,7 @@ static void ccci_dump_buffer_init(void)
 		mrdump_mini_add_misc((unsigned long)ke_dump_ctlb[0].buffer, CCCI_KE_DUMP_BUF,
 			0, "_EXTRA_CCCI_");
 	}
+#endif
 }
 
 /* functions will be called by external */
