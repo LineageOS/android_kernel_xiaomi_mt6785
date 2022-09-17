@@ -47,9 +47,7 @@
 #include "../lct_tp_gesture.h"
 #include "../lct_tp_grip_area.h"
 #include "../lct_tp_work.h"
-#ifdef CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE
-#include "../xiaomi/xiaomi_touch.h"
-#endif
+
 #define NVT_DEBUG 1
 
 //---GPIO number---
@@ -223,16 +221,9 @@ struct nvt_ts_data {
     struct mtk_chip_config spi_ctrl;
 #endif
 
-/*2019.12.16 longcheer taocheng add (xiaomi game mode) start*/
-#ifdef CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE
-	u8 palm_sensor_switch;
-	bool palm_sensor_changed;
-	bool gamemode_enabled;
-#endif
 	struct mutex reg_lock;
 	struct device *nvt_touch_dev;
 	struct class *nvt_tp_class;
-/*2019.12.16 longcheer taocheng add (xiaomi game mode) end*/
 };
 
 #if NVT_TOUCH_PROC

@@ -72,11 +72,6 @@
 #include "../lct_tp_palm.h"
 #endif
 
-
-#ifdef CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE
-#include "../xiaomi/xiaomi_touch.h"
-#endif
-
 /* Longcheer set gesture mode */
 int lct_gsx_tp_gesture_callback(bool flag);
 
@@ -477,11 +472,6 @@ struct goodix_ts_core {
 	struct regulator *avdd;
 	struct regulator *iovdd;
 
-#ifdef CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE
-	u8 palm_sensor_switch;
-	bool palm_sensor_changed;
-	bool gamemode_enabled;
-#endif
 	struct mutex reg_lock;
 	struct device *gtp_touch_dev;
 	struct class *gtp_tp_class;
