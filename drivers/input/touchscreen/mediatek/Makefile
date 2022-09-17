@@ -17,6 +17,7 @@ obj-$(CONFIG_TOUCHSCREEN_COMMON)	    +=  lct_tp_work.o
 obj-$(CONFIG_TOUCHSCREEN_COMMON)	    +=  lct_tp_gesture.o
 obj-$(CONFIG_TOUCHSCREEN_COMMON)	    +=  lct_tp_grip_area.o
 obj-$(CONFIG_TOUCHSCREEN_COMMON)	    +=  lct_tp_palm.o
+obj-$(CONFIG_TOUCHSCREEN_COMMON)	+= tp_common.o
 obj-$(CONFIG_TOUCHSCREEN_MTK_SOLOMON)	+=  SOLOMON/
 # obj-$(CONFIG_TOUCHSCREEN_FTS)	+=  focaltech_touch/
 obj-$(CONFIG_TOUCHSCREEN_MTK_GT1151)	+=  GT1151/
