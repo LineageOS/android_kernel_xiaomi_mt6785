@@ -166,6 +166,15 @@ config TOUCHSCREEN_MTK_GT9157
 	  To compile this dirver as a module, choose M here: the
 	  module will be called
 
+config TOUCHSCREEN_COMMON
+	bool "Common touchscreen interface to interact with userspace"
+	default y
+	help
+	  Say Y here if you want to control touchpanel features via
+	  /sys/touchpanel.
+
+	  If unsure, say N.
+
 source "drivers/input/touchscreen/mediatek/GT9157/Kconfig"
 
 source "drivers/input/touchscreen/mediatek/ft3418_i2c/Kconfig"
