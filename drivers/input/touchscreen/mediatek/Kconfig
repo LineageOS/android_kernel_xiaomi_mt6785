@@ -169,7 +169,6 @@ config TOUCHSCREEN_MTK_GT9157
 source "drivers/input/touchscreen/mediatek/GT9157/Kconfig"
 
 source "drivers/input/touchscreen/mediatek/ft3418_i2c/Kconfig"
-source "drivers/input/touchscreen/mediatek/xiaomi/Kconfig"
 
 config TOUCHSCREEN_COMMON
 	bool "touchscreen for xiaomi project"

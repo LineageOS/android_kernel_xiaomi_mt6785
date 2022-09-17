@@ -78,10 +78,6 @@
 #include "../lct_tp_palm.h"
 #endif
 
-#ifdef CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE
-#include "../xiaomi/xiaomi_touch.h"
-#endif
-
 /*****************************************************************************
 * Private constant and macro definitions using #define
 *****************************************************************************/
@@ -231,11 +227,6 @@ struct fts_ts_data {
     struct notifier_block fb_notif;
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
     struct early_suspend early_suspend;
-#endif
-#ifdef CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE
-    u8 palm_sensor_switch;
-    bool palm_sensor_changed;
-    bool gamemode_enabled;
 #endif
 	struct mutex reg_lock;
 	struct device *fts_touch_dev;
