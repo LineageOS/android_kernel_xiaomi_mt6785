@@ -473,6 +473,16 @@ config SRAM
 config SRAM_EXEC
 	bool
 
+config ACCESS_RAMOOPS
+	tristate "Driver to allow access for decrypting encrypted ramoops"
+	depends on PSTORE_CONSOLE
+	help
+	  This driver allows userspace to access the ramoops and ramoops
+	  metadata carveouts to decrypt the ramoops.
+	  Enable access_ramoops in default config and add device tree entry
+	  for the Resume on Reboot feature.
+	  Say 'y' if ramoops is encrypted.
+
 config VEXPRESS_SYSCFG
 	bool "Versatile Express System Configuration driver"
 	depends on VEXPRESS_CONFIG
@@ -521,13 +531,35 @@ config UID_SYS_STATS_DEBUG
 	help
 	  Per TASK based io statistics exported to /proc/uid_io
 
+config ANT_CHECK
+	tristate "ant check gpio"
+	help
+	  Say 'y' here to include support for the QTI QPNP MISC
+	  peripheral. The MISC peripheral holds the USB ID interrupt
+	  and the driver provides an API to check if this interrupt
+	  is available on the current PMIC chip.
+
+config ANT_CHECK_DIV
+	tristate "ant check div gpio"
+	help
+	  Say 'y' here to include support for the QTI QPNP MISC
+	  peripheral. The MISC peripheral holds the USB ID interrupt
+	  and the driver provides an API to check if this interrupt
+	  is available on the current PMIC chip.
+
 config MEMORY_STATE_TIME
 	tristate "Memory freq/bandwidth time statistics"
 	depends on PROFILING
 	help
 	  Memory time statistics exported to /sys/kernel/memory_state_time
 
+config SIMTRAY_STATUS
+       tristate "Xiaomi SIM tray status"
+       help
+         Say 'y' here to support SIM tray GPIO detection
+
 source "drivers/misc/c2port/Kconfig"
+source "drivers/misc/aw8622_haptic/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
 source "drivers/misc/ti-st/Kconfig"
@@ -539,4 +571,6 @@ source "drivers/misc/mic/Kconfig"
 source "drivers/misc/genwqe/Kconfig"
 source "drivers/misc/echo/Kconfig"
 source "drivers/misc/cxl/Kconfig"
+source "drivers/misc/mediatek/Kconfig"
+source "drivers/misc/mi-memory/Kconfig"
 endmenu
