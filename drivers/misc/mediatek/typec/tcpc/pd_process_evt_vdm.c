@@ -547,14 +547,18 @@ static inline void print_vdm_msg(
 #if (PE_EVT_INFO_VDM_DIS == 0)
 	uint8_t cmd;
 	uint8_t cmd_type;
+#ifdef CONFIG_USB_PD_ALT_MODE
 	uint16_t svid;
+#endif /* CONFIG_USB_PD_ALT_MODE */
 	const char *name = NULL;
 	uint32_t vdm_hdr = pd_port->curr_vdm_hdr;
 	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
 
 	cmd = PD_VDO_CMD(vdm_hdr);
 	cmd_type = PD_VDO_CMDT(vdm_hdr);
+#ifdef CONFIG_USB_PD_ALT_MODE
 	svid = PD_VDO_VID(vdm_hdr);
+#endif /* CONFIG_USB_PD_ALT_MODE */
 
 	name = assign_vdm_cmd_name(cmd);
 
