@@ -32,6 +32,9 @@
 #include <linux/notifier.h>
 #include <linux/fb.h>
 #endif
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+#include <linux/input/tp_common.h>
+#endif
 
 #include "goodix_ts_core.h"
 
@@ -79,6 +82,34 @@ int lct_gsx_tp_gesture_callback(bool flag)
 	return 0;
 
 }
+
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+static ssize_t double_tap_show(struct kobject *kobj,
+                               struct kobj_attribute *attr, char *buf)
+{
+    struct goodix_ts_core *cd = goodix_modules.core_data;
+    return sprintf(buf, "%d\n", cd->gesture_enable);
+}
+
+static ssize_t double_tap_store(struct kobject *kobj,
+                                struct kobj_attribute *attr, const char *buf,
+                                size_t count)
+{
+    int rc, val;
+
+    rc = kstrtoint(buf, 10, &val);
+    if (rc)
+    return -EINVAL;
+
+    lct_gsx_tp_gesture_callback(!!val);
+    return count;
+}
+
+static struct tp_common_ops double_tap_ops = {
+    .show = double_tap_show,
+    .store = double_tap_store,
+};
+#endif
 
 #define WAKEUP_OFF 4
 #define WAKEUP_ON 5
@@ -2612,7 +2643,14 @@ static int goodix_ts_probe(struct platform_device *pdev)
 
 	}
 
-
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+	r = tp_common_set_double_tap_ops(&double_tap_ops);
+	if (r < 0) {
+		ts_err("%s: Failed to create double_tap node err=%d\n",
+			__func__, r);
+		goto err_class_create;
+	}
+#endif
 
 	/* generic notifier callback */
 	core_data->ts_notifier.notifier_call = goodix_generic_noti_callback;
