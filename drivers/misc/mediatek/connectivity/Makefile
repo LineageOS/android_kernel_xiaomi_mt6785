@@ -66,6 +66,7 @@ endif
     obj-y += wlan/core/gen4m/
     obj-y += bt/mt66xx/
     obj-y += gps/
+    obj-y += fmradio/
 
 # Otherwise we were called directly from the command line;
 # invoke the kernel build system.
