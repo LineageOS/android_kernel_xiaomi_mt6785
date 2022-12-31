@@ -56,6 +56,7 @@ endif
     export MTK_WLAN_SERVICE=y
     export WIFI_IP_SET=2
     export WIFI_ECO_VER=1
+    export BT_PLATFORM=connac1x
 
     # Do build-in for xxx.c checking
     subdir-ccflags-y += -D MTK_WCN_REMOVE_KERNEL_MODULE
@@ -64,6 +65,7 @@ endif
     obj-y += common/
     obj-y += wlan/adaptor/
     obj-y += wlan/core/gen4m/
+    obj-y += bt/mt66xx/
 
 # Otherwise we were called directly from the command line;
 # invoke the kernel build system.

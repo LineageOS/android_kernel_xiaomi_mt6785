@@ -1,111 +1,55 @@
-export KERNEL_SRC := /lib/modules/$(shell uname -r)/build
-#################### Configurations ####################
-# Compile Options for bt driver configuration.
-CONFIG_SUPPORT_BT_DL_WIFI_PATCH=y
-CONFIG_SUPPORT_BLUEZ=n
-CONFIG_SUPPORT_DVT=n
-CONFIG_SUPPORT_MULTI_DEV_NODE=n
-
-ifeq ($(CONFIG_SUPPORT_BT_DL_WIFI_PATCH), y)
-    ccflags-y += -DCFG_SUPPORT_BT_DL_WIFI_PATCH=1
-else
-    ccflags-y += -DCFG_SUPPORT_BT_DL_WIFI_PATCH=0
-endif
-
-ifeq ($(CONFIG_SUPPORT_BLUEZ), y)
-    ccflags-y += -DCFG_SUPPORT_BLUEZ=1
-    ccflags-y += -DCFG_SUPPORT_HW_DVT=0
-else
-    ccflags-y += -DCFG_SUPPORT_BLUEZ=0
-    ccflags-y += -DCFG_SUPPORT_HW_DVT=1
-endif
-
-ifeq ($(CONFIG_SUPPORT_DVT), y)
-    ccflags-y += -DCFG_SUPPORT_DVT=1
-else
-    ccflags-y += -DCFG_SUPPORT_DVT=0
-endif
-
-ifeq ($(CONFIG_SUPPORT_DVT), y)
-    ccflags-y += -DCFG_SUPPORT_DVT=1
-else
-    ccflags-y += -DCFG_SUPPORT_DVT=0
-endif
-
-ifeq ($(CONFIG_SUPPORT_MULTI_DEV_NODE), y)
-    ccflags-y += -DCFG_SUPPORT_MULTI_DEV_NODE=1
-else
-    ccflags-y += -DCFG_SUPPORT_MULTI_DEV_NODE=0
-endif
-
-#################### Configurations ####################
-# For chip interface, driver supports "usb", "sdio", "uart" and "btif"
-MTK_CHIP_IF := usb
-
-ifeq ($(MTK_CHIP_IF), sdio)
-    MOD_NAME = btmtk_sdio_unify
-    CFILES := sdio/btmtksdio.c btmtk_woble.c btmtk_buffer_mode.c btmtk_chip_reset.c
-    ccflags-y += -DCHIP_IF_SDIO
-    ccflags-y += -DSDIO_DEBUG=0
-    ccflags-y += -I$(src)/include/sdio
-else ifeq ($(MTK_CHIP_IF), usb)
-    MOD_NAME = btmtk_usb_unify
-    CFILES := usb/btmtkusb.c btmtk_woble.c btmtk_chip_reset.c
-    ccflags-y += -DCHIP_IF_USB
-    ccflags-y += -I$(src)/include/usb
-else ifeq ($(MTK_CHIP_IF), uart)
-    MOD_NAME = btmtk_uart_unify
-    CFILES := uart/btmtk_uart_main.c
-    ccflags-y += -DCHIP_IF_UART
-    ccflags-y += -I$(src)/include/uart
-else
-    MOD_NAME = btmtkbtif_unify
-    CFILES := btif/btmtk_btif.c
-    ccflags-y += -DCHIP_IF_BTIF
-    ccflags-y += -I$(src)/include/btif
-endif
-
-CFILES += btmtk_main.c btmtk_fw_log.c
-
-ccflags-y += -I$(src)/include/ -I$(src)/
-
-$(MOD_NAME)-objs := $(CFILES:.c=.o)
-
-obj-m += $(MOD_NAME).o
-
-
-#VPATH = /opt/toolchains/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux
-#UART_MOD_NAME = btmtk_uart
-#UART_CFILES := \
-#	btmtk_uart_main.c
-#$(UART_MOD_NAME)-objs := $(UART_CFILES:.c=.o)
 ###############################################################################
-# Common
-###############################################################################
-#obj-m := $(UART_MOD_NAME).o
-all:
-	make -C $(KERNEL_SRC) M=$(PWD) modules
-clean:
-	make -C $(KERNEL_SRC) M=$(PWD) clean
-# Check coding style
-# export IGNORE_CODING_STYLE_RULES := NEW_TYPEDEFS,LEADING_SPACE,CODE_INDENT,SUSPECT_CODE_INDENT
-ccs:
-	./util/checkpatch.pl -f ./sdio/btmtksdio.c
-	./util/checkpatch.pl -f ./include/sdio/btmtk_sdio.h
-	./util/checkpatch.pl -f ./include/btmtk_define.h
-	./util/checkpatch.pl -f ./include/btmtk_drv.h
-	./util/checkpatch.pl -f ./include/btmtk_chip_if.h
-	./util/checkpatch.pl -f ./include/btmtk_main.h
-	./util/checkpatch.pl -f ./include/btmtk_buffer_mode.h
-	./util/checkpatch.pl -f ./include/btmtk_fw_log.h
-	./util/checkpatch.pl -f ./include/btmtk_woble.h
-	./util/checkpatch.pl -f ./include/uart/btmtk_uart.h
-	./util/checkpatch.pl -f ./uart/btmtk_uart_main.c
-	./util/checkpatch.pl -f ./include/usb/btmtk_usb.h
-	./util/checkpatch.pl -f ./usb/btmtkusb.c
-	./util/checkpatch.pl -f btmtk_fw_log.c
-	./util/checkpatch.pl -f btmtk_main.c
-	./util/checkpatch.pl -f btmtk_buffer_mode.c
-	./util/checkpatch.pl -f btmtk_woble.c
-	./util/checkpatch.pl -f btmtk_chip_reset.c
+# Bluetooth character device driver
 
+#ifneq ($(CFG_BT_PM_QOS_CONTROL),)
+#    ccflags-y += -D PM_QOS_CONTROL=1
+#else
+#    ccflags-y += -D PM_QOS_CONTROL=0
+#endif
+
+# Force build fail on modpost warning
+KBUILD_MODPOST_FAIL_ON_WARNINGS := y
+
+ccflags-y += -D FW_LOG_DEFAULT_ON=0
+
+
+# platform
+ccflags-y += -D CONNAC1X_CHIPID=$(BT_PLATFORM)
+
+###############################################################################
+# To add WMT dependent Macro and header file, will be removed later
+
+ccflags-y += -D MTK_WCN_WMT_STP_EXP_SYMBOL_ABSTRACT
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
+#ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/mt$(BT_PLATFORM)/include
+
+ifeq ($(CONFIG_MTK_CONN_LTE_IDC_SUPPORT),y)
+    ccflags-y += -D WMT_IDC_SUPPORT=1
+else
+    ccflags-y += -D WMT_IDC_SUPPORT=0
+endif
+
+###############################################################################
+# To include BT driver dependent header file
+
+WMT_SRC_FOLDER := $(srctree)/drivers/misc/mediatek/connectivity/common
+ccflags-y += -I$(WMT_SRC_FOLDER)/common_main/include
+ccflags-y += -I$(WMT_SRC_FOLDER)/common_main/linux/include
+ifneq ($(CONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH),)
+ccflags-y += -I$(WMT_SRC_FOLDER)/debug_utility
+endif
+ccflags-y += -I$(src)/include
+
+###############################################################################
+
+MODULE_NAME := bt_drv_$(BT_PLATFORM)
+obj-y += $(MODULE_NAME).o
+
+ccflags-y += -D CREATE_NODE_DYNAMIC=1
+
+$(MODULE_NAME)-objs += stp_chrdev_bt.o
+$(MODULE_NAME)-objs += btmtk_dbg.o btmtk_dbg_tp_evt_if.o
+ifneq ($(CONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH),)
+$(MODULE_NAME)-objs += fw_log_bt.o
+endif
