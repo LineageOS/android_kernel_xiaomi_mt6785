@@ -61,12 +61,12 @@ endif
     subdir-ccflags-y += -D MTK_WCN_REMOVE_KERNEL_MODULE
     subdir-ccflags-y += -D MTK_WCN_BUILT_IN_DRIVER
 
-    obj-y += common/
-    obj-y += wlan/adaptor/
-    obj-y += wlan/core/gen4m/
-    obj-y += bt/mt66xx/
-    obj-y += gps/
-    obj-y += fmradio/
+    obj-$(CONFIG_MTK_COMBO) += common/
+    obj-$(CONFIG_MTK_COMBO_WIFI) += wlan/adaptor/
+    obj-$(CONFIG_MTK_COMBO_WIFI) += wlan/core/gen4m/
+    obj-$(CONFIG_MTK_COMBO_BT) += bt/mt66xx/
+    obj-$(CONFIG_MTK_COMBO_GPS) += gps/
+    obj-$(CONFIG_MTK_FMRADIO) += fmradio/
 
 # Otherwise we were called directly from the command line;
 # invoke the kernel build system.
