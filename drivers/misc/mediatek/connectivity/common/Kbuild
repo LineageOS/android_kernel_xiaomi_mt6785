@@ -21,22 +21,8 @@ CONNSYS_PLATFORM := $(MTK_PLATFORM)
 endif
 endif
 
-###############################################################################
-# Necessary Check
-
-ifneq ($(CONFIG_MTK_COMBO),)
-
-ifneq ($(KERNEL_OUT),)
-    ccflags-y += -imacros $(KERNEL_OUT)/include/generated/autoconf.h
-endif
-
-ifeq ($(TARGET_BUILD_VARIANT),$(filter $(TARGET_BUILD_VARIANT),userdebug user))
-    #ldflags-y += -s
-endif
-
 # Force build fail on modpost warning
 KBUILD_MODPOST_FAIL_ON_WARNINGS := y
-###############################################################################
 
 #ccflags-y += -D MTK_WCN_REMOVE_KERNEL_MODULE
 ifeq ($(CONFIG_ARM64), y)
@@ -116,13 +102,7 @@ endif
 
 ###############################################################################
 MODULE_NAME := wmt_drv
-ifeq ($(CONFIG_WLAN_DRV_BUILD_IN),y)
-$(warning $(MODULE_NAME) build-in boot.img)
 obj-y += $(MODULE_NAME).o
-else
-$(warning $(MODULE_NAME) is kernel module)
-obj-m += $(MODULE_NAME).o
-endif
 
 ###############################################################################
 # common_detect
@@ -182,17 +162,8 @@ ccflags-y += -D WMT_UART_RX_MODE_WORK=0 # 1. work thread 0. tasklet
 ccflags-y += -D WMT_SDIO_MODE=1
 ccflags-y += -D WMT_CREATE_NODE_DYNAMIC=1
 
-ifneq ($(TARGET_BUILD_VARIANT),eng)
-ifeq ($(CONFIG_EXTREME_LOW_RAM), y)
 ccflags-y += -DLOG_STP_DEBUG_DISABLE
-endif
-endif
-
-ifneq ($(TARGET_BUILD_VARIANT), user)
-    ccflags-y += -D WMT_DBG_SUPPORT=1
-else
-    ccflags-y += -D WMT_DBG_SUPPORT=0
-endif
+ccflags-y += -D WMT_DBG_SUPPORT=0
 
 ifeq ($(CONFIG_MTK_DEVAPC),y)
     ccflags-y += -D WMT_DEVAPC_DBG_SUPPORT=1
@@ -289,6 +260,4 @@ $(MODULE_NAME)-objs += debug_utility/connsys_debug_utility.o
 ###############################################################################
 ifeq ($(TARGET_BUILD_VARIANT),eng)
 ccflags-y += -I$(KO_CODE_PATH)/test/include
-endif
-
 endif
