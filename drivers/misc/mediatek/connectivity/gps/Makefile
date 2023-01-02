@@ -212,12 +212,10 @@ ifneq ($(filter "y",$(CONFIG_MTK_COMBO_CHIP_MT6620) $(CONFIG_MTK_COMBO_CHIP_MT66
         ccflags-y += -DSOC_CO_CLOCK_FLAG=0
         ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=0
         ccflags-y += -DREMOVE_MK_NODE=1
-$(warning is combo_chip judge by CONFIG_MTK_COMBO_CHIP_*)
 else
         ccflags-y += -DSOC_CO_CLOCK_FLAG=1
         ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=1
         ccflags-y += -DREMOVE_MK_NODE=0
-$(warning is connsys_chip judge by CONFIG_MTK_COMBO_CHIP_*)
 ccflags-y += -I$(WMT_SRC_FOLDER)/common_main/$(MTK_PLATFORM)/include
 
 endif
@@ -226,14 +224,12 @@ ifneq ($(filter "CONSYS_%",$(CONFIG_MTK_COMBO_CHIP)),)
         ccflags-y += -DSOC_CO_CLOCK_FLAG=1
         ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=1
         ccflags-y += -DREMOVE_MK_NODE=0
-$(warning is connsys_chip judge by CONFIG_MTK_COMBO_CHIP)
 ccflags-y += -I$(WMT_SRC_FOLDER)/common_main/$(MTK_PLATFORM)/include
 
 else
         ccflags-y += -DSOC_CO_CLOCK_FLAG=0
         ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=0
         ccflags-y += -DREMOVE_MK_NODE=1
-$(warning is combo_chip judge by CONFIG_MTK_COMBO_CHIP)
 endif
 endif
 
