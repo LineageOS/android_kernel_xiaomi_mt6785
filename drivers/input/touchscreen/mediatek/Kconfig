@@ -53,7 +53,7 @@ config TOUCHSCREEN_MTK_FOCALTECH_TS
 	  To compile this dirver as a module, choose M here: the
 	  module will be called.
 
-source "drivers/input/touchscreen/mediatek/focaltech_touch/Kconfig"
+# source "drivers/input/touchscreen/mediatek/focaltech_touch/Kconfig"
 
 config TOUCHSCREEN_MTK_GT1151
 	bool "GT1151 for Mediatek package"
@@ -180,6 +180,18 @@ config TOUCHSCREEN_MTK_GT9157
 	  module will be called
 
 source "drivers/input/touchscreen/mediatek/GT9157/Kconfig"
+source "drivers/input/touchscreen/mediatek/ft3418_i2c/Kconfig"
+source "drivers/input/touchscreen/mediatek/xiaomi/Kconfig"
+
+config TOUCHSCREEN_COMMON
+	bool "touchscreen for xiaomi project"
+	depends on I2C
+	default n
+	help
+		Say Y here if you have a xiaomi touchscreen and want to enable support for the built-in touchscreen.
+
+source "drivers/input/touchscreen/mediatek/goodix_gtx8/Kconfig"
+source "drivers/input/touchscreen/mediatek/nt36xxx_spi/Kconfig"
 
 config TOUCHSCREEN_HIMAX_CHIPSET
 	bool "Himax touchpanel CHIPSET"
