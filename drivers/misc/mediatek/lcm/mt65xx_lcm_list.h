@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -16,6 +17,9 @@
 
 #include <lcm_drv.h>
 
+extern struct LCM_DRIVER dsi_panel_k7_38_0c_0a_fhdp_video;
+extern struct LCM_DRIVER dsi_panel_k7_44_06_0b_fhdp_video;
+extern struct LCM_DRIVER dsi_panel_k7_44_0e_0b_fhdp_video;
 extern struct LCM_DRIVER otm1282a_hd720_dsi_vdo_60hz_lcm_drv;
 extern struct LCM_DRIVER otm1282a_hd720_dsi_vdo_lcm_drv;
 extern struct LCM_DRIVER nt35595_fhd_dsi_cmd_truly_8163_lcm_drv;

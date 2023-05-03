@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -30,6 +31,16 @@ enum LCM_DSI_MODE_CON lcm_dsi_mode;
 struct LCM_DRIVER *lcm_driver_list[] = {
 #if defined(HX83102P_WXGA_VDO_INCELL_BOE)
 	&hx83102p_wxga_vdo_incell_boe_lcm_drv,
+#endif
+
+#if defined(DSI_PANEL_K7_38_0C_0A_FHDP_VIDEO)
+		&dsi_panel_k7_38_0c_0a_fhdp_video,
+#endif
+#if defined(DSI_PANEL_K7_44_06_0B_FHDP_VIDEO)
+		&dsi_panel_k7_44_06_0b_fhdp_video,
+#endif
+#if defined(DSI_PANEL_K7_44_0E_0B_FHDP_VIDEO)
+		&dsi_panel_k7_44_0e_0b_fhdp_video,
 #endif
 #if defined(ES6311_ANX6585_ZIGZAG_WXGA)
 	&es6311_anx6585_zigzag_wxga_lcm_drv,
@@ -1327,6 +1338,18 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 
 #if defined(R66451_FHDP_DSI_CMD_TIANMA)
 	&r66451_fhdp_dsi_cmd_tianma_lcm_drv,
+#endif
+
+#if defined(DSI_PANEL_K7_38_0C_0A_FHDP_VIDEO)
+		&dsi_panel_k7_38_0c_0a_fhdp_video,
+#endif
+
+#if defined(DSI_PANEL_K7_44_06_0B_FHDP_VIDEO)
+		&dsi_panel_k7_44_06_0b_fhdp_video,
+#endif
+
+#if defined(DSI_PANEL_K7_44_0E_0B_FHDP_VIDEO)
+		&dsi_panel_k7_44_0e_0b_fhdp_video,
 #endif
 };
 
