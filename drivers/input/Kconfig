@@ -213,6 +213,8 @@ source "drivers/input/misc/Kconfig"
 
 source "drivers/input/fingerprint/Kconfig"
 
+source "drivers/input/fingerprint_C3J/Kconfig"
+
 source "drivers/input/rmi4/Kconfig"
 
 endif
