@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -28,6 +29,23 @@
 #include <linux/delay.h>
 
 #include "phy-mtk.h"
+
+/*2020.12.07 longcheer xugui get cmdline is_lcm_connected start*/
+static int host_mode = 0;
+static unsigned int is_lcmconnected;
+static int __init is_lcm_get(char *line)
+{
+	if (!strcmp(line, "1")) {
+		is_lcmconnected = 1;
+	} else {
+		is_lcmconnected = 0;
+	}
+	phy_printk(K_ERR, "is_lcmconnected = %d\n", is_lcmconnected);
+	return 1;
+}
+
+__setup("is_lcm_connected=", is_lcm_get);
+/*2020.12.07 longcheer xugui get cmdline is_lcm_connected end*/
 
 #define MTK_USB_PHY_BASE		(phy_drv->phy_base)
 #define MTK_USB_PHY_PORT_BASE	(instance->port_base)
@@ -368,8 +386,10 @@ reg_done:
 static void usb_phy_tuning(struct mtk_phy_instance *instance)
 {
 	s32 u2_vrt_ref, u2_term_ref, u2_enhance;
-	struct device_node *of_node;
+	//struct device_node *of_node; //2020.12.07 longcheer xugui Remove unnecessary variables
 
+/*2020.12.07 longcheer xugui Remove node resolution and use master-slave recognition instead start*/
+#if 0
 	if (!instance->phy_tuning.inited) {
 		instance->phy_tuning.u2_vrt_ref = 6;
 		instance->phy_tuning.u2_term_ref = 6;
@@ -390,6 +410,27 @@ static void usb_phy_tuning(struct mtk_phy_instance *instance)
 	u2_vrt_ref = instance->phy_tuning.u2_vrt_ref;
 	u2_term_ref = instance->phy_tuning.u2_term_ref;
 	u2_enhance = instance->phy_tuning.u2_enhance;
+#endif
+/*2020.12.07 longcheer xugui Remove node resolution and use master-slave recognition instead end*/
+
+/*2020.12.07 longcheer xugui usb_phy_tuning start*/
+	if (host_mode) {
+		phy_printk(K_ERR, "usb_phy_tuning_host\n");
+		u2_vrt_ref = 6;
+		u2_term_ref = 6;
+		u2_enhance = 1;
+	} else {
+		if (is_lcmconnected == 1) {
+			u2_vrt_ref = 6;
+			u2_term_ref = 6;
+			u2_enhance = 3;
+		} else if (is_lcmconnected == 0) {
+			u2_vrt_ref = 6;
+			u2_term_ref = 6;
+			u2_enhance = 1;
+		}
+	}
+/*2020.12.07 longcheer xugui usb_phy_tuning end*/
 
 	if (u2_vrt_ref != -1) {
 		if (u2_vrt_ref <= VAL_MAX_WIDTH_3) {
@@ -587,7 +628,14 @@ static int phy_lpm_enable(struct mtk_phy_instance  *instance, bool on)
 static int phy_host_mode(struct mtk_phy_instance  *instance, bool on)
 {
 	phy_printk(K_DEBUG, "%s+ = %d\n", __func__, on);
+/*2020.12.07 longcheer xugui usb_phy_tuning start*/
+	if(on == 1)
+		host_mode = 1;
+	else
+		host_mode = 0;
 
+	usb_phy_tuning(instance);
+/*2020.12.07 longcheer xugui usb_phy_tuning end*/
 	return 0;
 }
 
