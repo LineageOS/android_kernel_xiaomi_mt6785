@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -876,19 +877,32 @@ void mt_mt65xx_led_set(struct led_classdev *led_cdev, enum led_brightness level)
 		schedule_work(&led_data->work);
 		return;
 	}
+
+	sysfs_notify(&led_cdev->dev->kobj, NULL, "brightness");
+
 	if (level != 0 && level * CONFIG_LIGHTNESS_MAPPING_VALUE < 255)
 		level = 1;
 	else
 		level = (level * CONFIG_LIGHTNESS_MAPPING_VALUE) / 255;
 
 	backlight_debug_log(led_data->level, level);
+
+
+
+#ifdef CONFIG_MTK_AAL_SUPPORT
+#ifdef CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE
+		disp_pq_notify_backlight_changed(level);
+		disp_aal_notify_backlight_changed(level);
+#else
 	disp_pq_notify_backlight_changed((((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT)
 					    - 1) * level + 127) / 255);
-#ifdef CONFIG_MTK_AAL_SUPPORT
 	disp_aal_notify_backlight_changed((((1 <<
 					MT_LED_INTERNAL_LEVEL_BIT_CNT)
 					    - 1) * level + 127) / 255);
+#endif
 #else
+	disp_pq_notify_backlight_changed((((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT)
+					    - 1) * level + 127) / 255);
 	if (led_data->cust.mode == MT65XX_LED_MODE_CUST_BLS_PWM)
 		mt_mt65xx_led_set_cust(&led_data->cust,
 			((((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT)
