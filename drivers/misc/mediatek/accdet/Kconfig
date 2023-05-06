@@ -120,3 +120,10 @@ config TS3A225E_ACCDET
 	  If you want to use TS3A225E
 	  say Y.
 	  If unsure, say N.
+
+config HS_MIC_RECORD_NOISE_PD_CHG
+	bool "Headset mic record with noise use 3rd pps charge ic"
+	help
+	  Headset mic record with noise, when 3rd pps charge ic work whit large current
+	  say Y here.
+	  If unsure, say N.
