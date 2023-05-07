@@ -2,6 +2,7 @@
  * Driver model for leds and led triggers
  *
  * Copyright (C) 2005 John Lenz <lenz@cs.wisc.edu>
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (C) 2005 Richard Purdie <rpurdie@openedhand.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,13 +26,21 @@ struct device;
 /*
  * LED Core
  */
-
+#ifdef CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE
+enum led_brightness {
+	LED_OFF		= 0,
+	LED_ON		= 1,
+	LED_HALF	= 1023,
+	LED_FULL	= 2047,
+};
+#else
 enum led_brightness {
 	LED_OFF		= 0,
 	LED_ON		= 1,
 	LED_HALF	= 127,
 	LED_FULL	= 255,
 };
+#endif
 
 struct led_classdev {
 	const char		*name;
