@@ -1041,5 +1041,13 @@ config REGULATOR_WM8994
 	  This driver provides support for the voltage regulators on the
 	  WM8994 CODEC.
 
+config REGULATOR_WL2866D
+	bool "ON Semi Technologies Inc. wl2866d regulator driver"
+	depends on I2C
+	help
+	  Say Y here to support the wl2866d chip.
+	  This driver controls wl2866d chip and the voltage
+	  regulators found in ON Semi Technologies Inc.
+
 endif
 
