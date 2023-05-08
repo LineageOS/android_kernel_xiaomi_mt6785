@@ -2,6 +2,7 @@
  * mtu3_gadget.c - MediaTek usb3 DRD peripheral support
  *
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * Author: Chunfeng Yun <chunfeng.yun@mediatek.com>
  *
@@ -851,6 +852,11 @@ void mtu3_gadget_suspend(struct mtu3 *mtu)
 void mtu3_gadget_disconnect(struct mtu3 *mtu)
 {
 	struct usb_gadget_driver *driver;
+
+	if (!mtu) {
+		pr_err("[%s] mtu3 is null\n", __func__);
+		return;
+	}
 
 	dev_info(mtu->dev, "gadget DISCONNECT\n");
 	if (mtu->gadget_driver && mtu->gadget_driver->disconnect) {
