@@ -1,6 +1,7 @@
 /* SCP sensor hub driver
  *
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -536,13 +537,9 @@ static void SCP_sensorHub_sync_time_func(unsigned long data)
 
 static int SCP_sensorHub_direct_push_work(void *data)
 {
-	int ret = 0;
-
 	for (;;) {
-		ret = wait_event_interruptible(chre_kthread_wait,
+		wait_event(chre_kthread_wait,
 			READ_ONCE(chre_kthread_wait_condition));
-		if (ret)
-			continue;
 		WRITE_ONCE(chre_kthread_wait_condition, false);
 		mark_timestamp(0, WORK_START, ktime_get_boot_ns(), 0);
 		SCP_sensorHub_read_wp_queue();
@@ -866,7 +863,7 @@ static void SCP_sensorHub_init_sensor_state(void)
 
 	mSensorState[SENSOR_TYPE_PICK_UP_GESTURE].sensorType =
 		SENSOR_TYPE_PICK_UP_GESTURE;
-	mSensorState[SENSOR_TYPE_PICK_UP_GESTURE].rate = SENSOR_RATE_ONESHOT;
+	mSensorState[SENSOR_TYPE_PICK_UP_GESTURE].rate = SENSOR_RATE_ONCHANGE;
 	mSensorState[SENSOR_TYPE_PICK_UP_GESTURE].timestamp_filter = false;
 
 	mSensorState[SENSOR_TYPE_WAKE_GESTURE].sensorType =
@@ -913,6 +910,13 @@ static void SCP_sensorHub_init_sensor_state(void)
 
 	mSensorState[SENSOR_TYPE_SAR].sensorType = SENSOR_TYPE_SAR;
 	mSensorState[SENSOR_TYPE_SAR].timestamp_filter = false;
+
+	mSensorState[SENSOR_TYPE_LIGHTSECONDARY].sensorType = SENSOR_TYPE_LIGHTSECONDARY;
+	mSensorState[SENSOR_TYPE_LIGHTSECONDARY].timestamp_filter = false;
+#ifdef CONFIG_MTK_ULTRASND_PROXIMITY
+	mSensorState[SENSOR_TYPE_ELLIPTIC_FUSION].sensorType = SENSOR_TYPE_ELLIPTIC_FUSION;
+	mSensorState[SENSOR_TYPE_ELLIPTIC_FUSION].timestamp_filter = false;
+#endif
 }
 
 static void init_sensor_config_cmd(struct ConfigCmd *cmd,
@@ -1742,6 +1746,12 @@ int sensor_get_data_from_hub(uint8_t sensorType,
 		data->sar_event.data[1] = data_t->sar_event.data[1];
 		data->sar_event.data[2] = data_t->sar_event.data[2];
 		break;
+	case ID_LIGHTSECONDARY:
+		data->time_stamp = data_t->time_stamp;
+		data->sar_event.data[0] = data_t->sar_event.data[0];
+		data->sar_event.data[1] = data_t->sar_event.data[1];
+		data->sar_event.data[2] = data_t->sar_event.data[2];
+		break;
 	default:
 		err = -1;
 		break;
@@ -2099,6 +2109,29 @@ int sensor_set_cmd_to_hub(uint8_t sensorType,
 			len = offsetof(struct SCP_SENSOR_HUB_SET_CUST_REQ,
 				custData) + sizeof(req.set_cust_req.getInfo);
 			break;
+/*2020.4.11 longcheer liushuwen add start for sar TX_POWER*/
+		case CUST_ACTION_SET_TRACE:
+			req.set_cust_req.setTrace.action =
+				CUST_ACTION_SET_TRACE;
+			req.set_cust_req.setTrace.trace = *((int32_t *) data);
+			len = offsetof(struct SCP_SENSOR_HUB_SET_CUST_REQ,
+				custData)+ sizeof(req.set_cust_req.setTrace);
+		break;
+ /*2020.4.11 longcheer liushuwen add end for sar TX_POWER*/
+		default:
+			return -1;
+		}
+		break;
+	case ID_LIGHTSECONDARY:
+		req.set_cust_req.sensorType = ID_LIGHTSECONDARY;
+		req.set_cust_req.action = SENSOR_HUB_SET_CUST;
+		switch (action) {
+		case CUST_ACTION_GET_SENSOR_INFO:
+			req.set_cust_req.getInfo.action =
+				CUST_ACTION_GET_SENSOR_INFO;
+			len = offsetof(struct SCP_SENSOR_HUB_SET_CUST_REQ,
+				custData) + sizeof(req.set_cust_req.getInfo);
+			break;
 		default:
 			return -1;
 		}
@@ -2183,14 +2216,12 @@ static void restoring_enable_sensorHub_sensor(int handle)
 
 void sensorHub_power_up_loop(void *data)
 {
-	int ret = 0, handle = 0;
+	int handle = 0;
 	struct SCP_sensorHub_data *obj = obj_data;
 	unsigned long flags = 0;
 
-	ret = wait_event_interruptible(power_reset_wait,
+	wait_event(power_reset_wait,
 		READ_ONCE(scp_system_ready) && READ_ONCE(scp_chre_ready));
-	if (ret)
-		return;
 	spin_lock_irqsave(&scp_state_lock, flags);
 	WRITE_ONCE(scp_chre_ready, false);
 	WRITE_ONCE(scp_system_ready, false);

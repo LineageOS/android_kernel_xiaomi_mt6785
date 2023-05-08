@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -14,6 +15,9 @@
 #define pr_fmt(fmt) "<ALS/PS> " fmt
 
 #include "inc/alsps_factory.h"
+#ifdef CONFIG_CUSTOM_KERNEL_SENSOR_CAL
+#include "../sensor_cal/sensor_cal_file_io.h"
+#endif								  
 
 struct alsps_factory_private {
 	uint32_t gain;
@@ -226,18 +230,40 @@ static long alsps_factory_unlocked_ioctl(struct file *file, unsigned int cmd,
 	case ALSPS_IOCTL_SET_CALI:
 		if (copy_from_user(&data, ptr, sizeof(data)))
 			return -EFAULT;
+#ifdef CONFIG_CUSTOM_KERNEL_SENSOR_CAL
+		if(data == 65535) {
+			err = sensor_calibration_read(ID_PROXIMITY, &data);
+			if(err) {
+				pr_debug("ALSPS_IOCTL_SET_CALI null\n");
+				return -EINVAL;
+			} else {
+				pr_debug("ALSPS_sensor_calibration_read success!\n");
+			} 
+		} else {
+			err = sensor_calibration_save(ID_PROXIMITY, &data);
+			if(err) {
+				pr_debug("ALSPS_IOCTL_SET_CALI null\n");
+				return -EINVAL;
+			} else {
+				pr_debug("ALSPS_sensor_calibration_save success!\n");
+			} 
+		}
+		pr_debug("ALSPS_IOCTL_SET_CALI:%d\n", data);								  							  
 		if (alsps_factory.fops != NULL &&
 		    alsps_factory.fops->ps_set_cali != NULL) {
 			err = alsps_factory.fops->ps_set_cali(data);
 			if (err < 0) {
 				pr_err("ALSPS_IOCTL_SET_CALI fail!\n");
 				return -EINVAL;
+		    } else {
+				pr_debug("ALSPS_IOCTL_SET_CALI success!\n");
 			}
 		} else {
 			pr_err("ALSPS_IOCTL_SET_CALI NULL\n");
 			return -EINVAL;
 		}
 		return 0;
+#endif
 	case ALSPS_IOCTL_GET_CALI:
 		if (alsps_factory.fops != NULL &&
 		    alsps_factory.fops->ps_get_cali != NULL) {

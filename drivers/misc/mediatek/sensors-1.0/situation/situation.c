@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -80,6 +81,9 @@ static int handle_to_index(int handle)
 	case ID_SAR:
 		index = sar;
 		break;
+	case ID_LIGHTSECONDARY:
+		index = lightsecondary;
+		break;
 	default:
 		index = -1;
 		pr_err("%s invalid handle:%d,index:%d\n", __func__,
@@ -147,6 +151,71 @@ int sar_data_report_t(int32_t value[3], int64_t time_stamp)
 int sar_data_report(int32_t value[3])
 {
 	return sar_data_report_t(value, 0);
+}
+int lightsecondary_data_report_t(int32_t value[3], int64_t time_stamp)
+{
+	int err = 0, index = -1;
+	struct sensor_event event;
+	struct situation_context *cxt = situation_context_obj;
+
+	memset(&event, 0, sizeof(struct sensor_event));
+
+	index = handle_to_index(ID_LIGHTSECONDARY);
+	if (index < 0) {
+		pr_err("[%s] invalid index\n", __func__);
+		return -1;
+	}
+	event.time_stamp = time_stamp;
+	event.handle = ID_LIGHTSECONDARY;
+	event.flush_action = DATA_ACTION;
+	event.word[0] = value[0];
+	event.word[1] = value[1];
+	event.word[2] = value[2];
+	err = sensor_input_event(situation_context_obj->mdev.minor, &event);
+	if (cxt->ctl_context[index].situation_ctl.open_report_data != NULL &&
+		cxt->ctl_context[index].situation_ctl.is_support_wake_lock)
+		__pm_wakeup_event(&cxt->ws[index], 250);
+	return err;
+}
+
+int lightsecondary_cali_report(int32_t value[3])
+{
+	int err = 0;
+	struct sensor_event event;
+
+	memset(&event, 0, sizeof(struct sensor_event));
+	event.handle = ID_LIGHTSECONDARY;
+	event.flush_action = CALI_ACTION;
+	event.word[0] = value[0];
+	event.word[1] = value[1];
+	event.word[2] = value[2];
+	err = sensor_input_event(situation_context_obj->mdev.minor, &event);
+	return err;
+}
+
+
+static ssize_t lightsecondary_store_cali(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int err = 0;
+	uint8_t *cali_buf = NULL;
+
+	cali_buf = vzalloc(count);
+	if (!cali_buf)
+		return -12;
+
+	memcpy(cali_buf, buf, count);
+
+	err=lightsecondary_set_cali(cali_buf, count);
+
+	if (err < 0)
+		pr_err("lightsecondary set cali err %d\n", err);
+
+	return count;
+}
+
+int lightsecondary_data_report(int32_t value[3])
+{
+	return lightsecondary_data_report_t(value, 0);
 }
 int situation_notify_t(int handle, int64_t time_stamp)
 {
@@ -522,6 +591,7 @@ DEVICE_ATTR(situactive, 0644,
 DEVICE_ATTR(situbatch, 0644, situation_show_batch, situation_store_batch);
 DEVICE_ATTR(situflush, 0644, situation_show_flush, situation_store_flush);
 DEVICE_ATTR(situdevnum, 0644, situation_show_devnum, NULL);
+DEVICE_ATTR(lightsecondaryCali, 0644, NULL, lightsecondary_store_cali);
 
 
 static struct attribute *situation_attributes[] = {
@@ -529,6 +599,7 @@ static struct attribute *situation_attributes[] = {
 	&dev_attr_situbatch.attr,
 	&dev_attr_situflush.attr,
 	&dev_attr_situdevnum.attr,
+	&dev_attr_lightsecondaryCali.attr,
 	NULL
 };
 
