@@ -2,6 +2,7 @@
  * mtk_pwm.h PWM Drvier
  *
  * Copyright (c) 2016, Media Teck.inc
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public Licence,
@@ -19,7 +20,7 @@
 #define __MT_PWM_H__
 
 #include <linux/types.h>
-#include <mach/mtk_pwm_hal.h>
+#include <mt-plat/mt6785/include/mach/mtk_pwm_hal.h>
 
 struct pwm_easy_config {
 	u32 pwm_no;

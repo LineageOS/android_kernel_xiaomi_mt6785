@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -24,6 +25,7 @@ enum {
 	CPU_KIR_TOUCH,
 	CPU_KIR_PERFTOUCH,
 	CPU_KIR_USB,
+	CPU_KIR_FP,
 	CPU_KIR_AMMS,
 	CPU_KIR_GBE,
 	CPU_KIR_CCCI,
