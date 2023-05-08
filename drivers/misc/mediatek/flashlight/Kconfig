@@ -140,6 +140,17 @@ config MTK_FLASHLIGHT_DUMMY_GPIO
 
 	  Say M here if you want to compile this driver as a module.
 
+config MTK_FLASHLIGHT_CUST_GPIO
+	tristate "Mediatek flashlight cust gpio driver"
+	depends on MTK_FLASHLIGHT
+	help
+	  This is flashlight cust gpio driver for camera.
+
+	  Say Y here if you want a cust driver IC with GPIO interface.
+	  Select this only if your board has this IC.
+
+	  Say M here if you want to compile this driver as a module.
+
 config MTK_FLASHLIGHT_DEBUG
 	bool "Mediatek flashlight debugging messages"
 	depends on MTK_FLASHLIGHT

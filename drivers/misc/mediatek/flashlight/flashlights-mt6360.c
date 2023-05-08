@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -37,6 +38,10 @@
 #define MT6360_DTNAME "mediatek,flashlights_mt6360"
 #endif
 
+#ifdef CONFIG_MTK_CHARGER
+#undef CONFIG_MTK_CHARGER
+#endif
+
 #define MT6360_NAME "flashlights-mt6360"
 
 /* define channel, level */
@@ -53,6 +58,7 @@
 
 #define MT6360_LEVEL_NUM 32
 #define MT6360_LEVEL_TORCH 16
+#define MT6360_LONG_LIGHT 13
 #define MT6360_LEVEL_FLASH MT6360_LEVEL_NUM
 #define MT6360_WDT_TIMEOUT 1248 /* ms */
 #define MT6360_HW_TIMEOUT 400 /* ms */
@@ -728,6 +734,87 @@ static struct flashlight_operations mt6360_ops = {
 	mt6360_set_driver
 };
 
+static int flash_is_use = 0;
+unsigned char last_val = 0;
+static ssize_t mt6360_torch_brightness_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
+{
+	unsigned char reg_val = 0;
+	reg_val  = last_val;
+
+	return snprintf(buf, 10, "%d\n", reg_val);
+
+}
+
+static ssize_t mt6360_torch_brightness_store(struct device *dev,
+					 struct device_attribute *attr,
+					 const char *buf, size_t count)
+{
+	int ret = 0;
+	unsigned long value = 0;
+
+	ret = kstrtoul(buf, 10, &value);
+	if (ret < 0)
+		return ret;
+	pr_info("%s value is %d,length is %d\n",__func__,value,strlen(buf));
+
+	last_val = value;
+
+	if (value <= 0) {
+		if (flash_is_use) {
+			pr_info("disable flashlight");
+			flash_is_use = 0;
+			//mt6360_operate(MT6360_CHANNEL_CH1, MT6360_DISABLE);
+			//mt6360_operate(MT6360_CHANNEL_CH2, MT6360_DISABLE);
+			mt6360_disable(MT6360_CHANNEL_ALL);
+			mt6360_timer_cancel(MT6360_CHANNEL_CH1);
+			mt6360_timer_cancel(MT6360_CHANNEL_CH2);
+
+			/* clear flashlight state */
+			mt6360_en_ch1 = MT6360_NONE;
+			mt6360_en_ch2 = MT6360_NONE;
+			mt6360_set_driver(0);
+		} else{
+			pr_debug("flashlight is alreadly disable");
+		}
+		return count;
+	} else {
+		if(value > MT6360_LONG_LIGHT)
+			value = MT6360_LONG_LIGHT;
+		flash_is_use = 1;
+	}
+
+	mt6360_set_driver(1);
+	mt6360_operate(MT6360_CHANNEL_CH1, MT6360_DISABLE);
+	mt6360_operate(MT6360_CHANNEL_CH2, MT6360_DISABLE);
+
+	flashlight_set_torch_brightness (
+	flashlight_dev_ch1, mt6360_torch_level[value - 1]);
+	mt6360_timeout_ms[MT6360_CHANNEL_CH1] = 0;
+	mt6360_en_ch1 = MT6360_ENABLE_TORCH;
+
+	mt6360_enable();
+	if(strlen(buf) >= 2)
+		count = strlen(buf) - 1;
+	else
+		count = 1;
+
+	return count;
+}
+
+static DEVICE_ATTR(torch_brightness, 0664, mt6360_torch_brightness_show, mt6360_torch_brightness_store);
+//static DEVICE_ATTR(flash_brightness, 0664, mt6360_flash_brightness_show, mt6360_flash_brightness_store);
+
+static struct attribute *mt6360_attributes[] = {
+	&dev_attr_torch_brightness.attr,
+//	&dev_attr_flash_brightness.attr,
+	NULL
+};
+
+static struct attribute_group mt6360_attribute_group = {
+	.attrs = mt6360_attributes
+};
 
 /******************************************************************************
  * Platform device and driver
@@ -859,6 +946,13 @@ static int mt6360_probe(struct platform_device *pdev)
 	} else {
 		if (flashlight_dev_register(MT6360_NAME, &mt6360_ops))
 			return -EFAULT;
+	}
+
+	ret = sysfs_create_group(&pdev->dev.kobj,
+					   &mt6360_attribute_group);
+	if (ret < 0) {
+		dev_info(&pdev->dev, "%s error creating sysfs attr files\n",
+			 __func__);
 	}
 
 	pr_debug("Probe done.\n");
