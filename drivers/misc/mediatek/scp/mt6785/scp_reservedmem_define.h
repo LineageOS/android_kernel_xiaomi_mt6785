@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -22,14 +23,14 @@ static struct scp_reserve_mblock scp_reserve_mblock[] = {
 		.num = VOW_MEM_ID,
 		.start_phys = 0x0,
 		.start_virt = 0x0,
-		.size = 0x49200,  /* 292KB (2 model size)*/
+		.size = 0x49300,  /* 292KB (2 model size)*/
 	},
 #else
 	{
 		.num = VOW_MEM_ID,
 		.start_phys = 0x0,
 		.start_virt = 0x0,
-		.size = 0x38200,  /* 224KB (1 model size)*/
+		.size = 0x38300,  /* 224KB (1 model size)*/
 	},
 #endif
 #endif
@@ -75,12 +76,14 @@ static struct scp_reserve_mblock scp_reserve_mblock[] = {
 		.size = 0x18000, /* 96KB */
 	},
 #endif
+#ifdef CONFIG_MTK_VOW_BARGE_IN_SUPPORT
 	{
 		.num = VOW_BARGEIN_MEM_ID,
 		.start_phys = 0x0,
 		.start_virt = 0x0,
-		.size = 0x5A00,  /* 22.5KB */
+		.size = 0x4600,  /* 17KB */
 	},
+#endif
 #ifdef SCP_PARAMS_TO_SCP_SUPPORT
 	{
 		.num = SCP_DRV_PARAMS_MEM_ID,
@@ -95,9 +98,14 @@ static struct scp_reserve_mblock scp_reserve_mblock[] = {
 		.start_phys = 0x0,
 		.start_virt = 0x0,
 		.size = 0x19000,
-},
+	},
+	{
+		.num = SCP_ELLIPTIC_DEBUG_MEM,
+		.start_phys = 0,
+		.start_virt = 0,
+		.size = 0x8000,
+	},
 #endif
-
 };
 
 
