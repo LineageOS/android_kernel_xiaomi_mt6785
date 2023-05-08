@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -46,6 +47,26 @@ static void mtk_cl_backlight_set_max_brightness_limit(void)
 	if (g_backlight_last_level != g_backlight_level) {
 		mtk_cooler_backlight_dprintk("set brightness level = %d\n",
 				g_backlight_level);
+#ifdef CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE
+				switch (g_backlight_level) {
+				case 0:
+					setMaxbrightness(2047, 0);	/* 100% */
+					break;
+				case 1:
+					setMaxbrightness(1433, 1);	/* 70% */
+					break;
+				case 2:
+					setMaxbrightness(819, 1);	/* 40% */
+					break;
+				case 3:
+					setMaxbrightness(205, 1);	/* 10% */
+					break;
+				default:
+					setMaxbrightness(2047, 0);
+					break;
+				}
+#else
+
 		switch (g_backlight_level) {
 		case 0:
 			/* 100% */
@@ -97,6 +118,7 @@ static void mtk_cl_backlight_set_max_brightness_limit(void)
 			#endif
 			break;
 		}
+#endif
 	}
 }
 

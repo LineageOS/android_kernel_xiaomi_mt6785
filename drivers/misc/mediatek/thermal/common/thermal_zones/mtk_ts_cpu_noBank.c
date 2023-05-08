@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -87,10 +88,6 @@
 
 #if !defined(CFG_LVTS_DOMINATOR)
 #define CFG_LVTS_DOMINATOR	0
-#endif
-
-#if !defined(CFG_LVTS_MCU_INTERRUPT_HANDLER)
-#define CFG_LVTS_MCU_INTERRUPT_HANDLER	0
 #endif
 
 #if !defined(CONFIG_LVTS_ERROR_AEE_WARNING)
@@ -444,7 +441,7 @@ int mtk_gpufreq_register(struct mt_gpufreq_power_table_info *freqs, int num)
 		mtk_gpu_power[i].gpufreq_khz = freqs[i].gpufreq_khz;
 		mtk_gpu_power[i].gpufreq_power = freqs[i].gpufreq_power;
 
-		tscpu_dprintk("[%d].gpufreq_khz=%u, .gpufreq_power=%u\n",
+		tscpu_printk("[%d].gpufreq_khz=%u, .gpufreq_power=%u\n",
 			i, freqs[i].gpufreq_khz, freqs[i].gpufreq_power);
 	}
 
@@ -2741,27 +2738,6 @@ static int tscpu_thermal_probe(struct platform_device *dev)
 
 	if (err)
 		tscpu_warn("tscpu_init IRQ register fail\n");
-
-#ifdef CFG_THERM_MCU_LVTS
-	err = request_irq(thermal_mcu_irq_number,
-				lvts_tscpu_thermal_all_tc_interrupt_handler,
-				IRQF_TRIGGER_NONE, THERMAL_NAME, NULL);
-#endif
-#if CFG_LVTS_MCU_INTERRUPT_HANDLER
-	err = request_irq(thermal_mcu_irq_number,
-#if CFG_LVTS_DOMINATOR
-#if CFG_THERM_LVTS
-				lvts_tscpu_thermal_all_tc_interrupt_handler,
-#endif /* CFG_THERM_LVTS */
-#else
-				tscpu_thermal_all_tc_interrupt_handler,
-#endif /* CFG_LVTS_DOMINATOR */
-				IRQF_TRIGGER_NONE, THERMAL_NAME, NULL);
-
-	if (err)
-		tscpu_warn("tscpu_init mcu IRQ register fail\n");
-#endif /* CFG_LVTS_MCU_INTERRUPT_HANDLER */
-
 #else
 	err = request_irq(THERM_CTRL_IRQ_BIT_ID,
 #if CFG_LVTS_DOMINATOR

@@ -414,6 +414,12 @@ obj-$(CONFIG_THERMAL) += mtk_ts_pmic.o
 obj-$(CONFIG_THERMAL) += mtk_ts_charger.o
 #obj-$(CONFIG_THERMAL) += mtk_ts_charger2.o
 
+# 2021.02.04 longcheer jiangshitian change for pd-chg and main-cam thermal begin
+ifeq ($(CONFIG_TARGET_PROJECT_K7B),y)
+obj-$(CONFIG_THERMAL) += mtk_ts_btspdchg.o
+obj-$(CONFIG_THERMAL) += mtk_ts_btsmcam.o
+endif
+# 2021.02.04 longcheer jiangshitian change for pd-chg and main-cam thermal end
 
 ifneq ($(CONFIG_MTK_COMBO_WIFI),)
 ifneq ($(filter "MT76%", $(CONFIG_MTK_COMBO_CHIP)),)
