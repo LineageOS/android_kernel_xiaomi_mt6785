@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -51,6 +52,7 @@ enum ppm_sysboost_user {
 	BOOST_BY_DEBUGD_64,
 	BOOST_BY_BOOT_TIME_OPT,
 
+	BOOST_BY_XM_THERMAL,
 	NR_PPM_SYSBOOST_USER,
 };
 
