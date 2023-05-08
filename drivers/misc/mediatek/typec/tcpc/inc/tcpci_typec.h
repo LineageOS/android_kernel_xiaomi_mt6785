@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -49,6 +50,7 @@ extern int tcpc_typec_change_role(
 
 #ifdef CONFIG_USB_POWER_DELIVERY
 extern int tcpc_typec_handle_pe_pr_swap(struct tcpc_device *tcpc);
+extern inline int typec_pd_start_entry(struct tcpc_device *tcpc_dev);
 #endif /* CONFIG_USB_POWER_DELIVERY */
 
 #ifdef CONFIG_TYPEC_CAP_ROLE_SWAP

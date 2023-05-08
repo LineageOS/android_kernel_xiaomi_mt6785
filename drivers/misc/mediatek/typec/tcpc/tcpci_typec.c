@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * TCPC Type-C Driver for Richtek
  *
@@ -2194,6 +2195,11 @@ static inline int typec_handle_pe_idle(struct tcpc_device *tcpc)
 	}
 
 	return 0;
+}
+
+inline int typec_pd_start_entry(struct tcpc_device *tcpc_dev)
+{
+	return pd_put_cc_attached_event(tcpc_dev, tcpc_dev->typec_attach_new);
 }
 
 #ifdef CONFIG_USB_PD_WAIT_BC12
