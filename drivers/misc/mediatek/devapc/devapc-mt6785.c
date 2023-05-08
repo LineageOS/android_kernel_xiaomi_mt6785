@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #include <linux/module.h>
@@ -857,6 +858,23 @@ const char *index_to_subsys(uint32_t index)
 	else
 		return "OUT_OF_BOUND";
 }
+
+#ifdef CONFIG_DEVAPC_MMAP_DEBUG
+void devapc_catch_illegal_range(phys_addr_t phys_addr, size_t size)
+{
+	/*
+	 * Catch BROM addr mapped
+	 */
+	if (phys_addr >= 0x0 && phys_addr < SRAM_START_ADDR) {
+		pr_err(PFX "%s: %s %s:(%pa), %s:(0x%lx)\n",
+				"catch BROM address mapped!",
+				__func__, "phys_addr", &phys_addr,
+				"size", size);
+		BUG_ON(1);
+	}
+}
+EXPORT_SYMBOL(devapc_catch_illegal_range);
+#endif
 
 static ssize_t mt6785_devapc_dbg_read(struct file *file, char __user *buffer,
 	size_t count, loff_t *ppos)

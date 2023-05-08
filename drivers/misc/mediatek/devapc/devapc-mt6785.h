@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #ifndef __DEVAPC_MT6785_H__
@@ -141,5 +142,7 @@ struct TOPAXI_ID_INFO {
 #define PD_SHIFT_STA_OFFSET			0xF10
 #define PD_SHIFT_SEL_OFFSET			0xF14
 #define PD_SHIFT_CON_OFFSET			0xF20
+
+#define SRAM_START_ADDR                         (0x100000)
 
 #endif /* __DEVAPC_MT6785_H__ */
