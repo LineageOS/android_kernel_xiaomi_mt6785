@@ -3,6 +3,7 @@
 // MediaTek ALSA SoC Audio DAI ADDA Control
 //
 // Copyright (c) 2018 MediaTek Inc.
+// Copyright (C) 2021 XiaoMi, Inc.
 // Author: Eason Yen <eason.yen@mediatek.com>
 
 #include <linux/regmap.h>
@@ -205,12 +206,47 @@ static const struct snd_kcontrol_new mtk_adda_dl_ch2_mix[] = {
 
 static const struct snd_kcontrol_new mtk_adda_dl_ch3_mix[] = {
 	SOC_DAPM_SINGLE_AUTODISABLE("DL1_CH1", AFE_CONN52, I_DL1_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL1_CH2", AFE_CONN52, I_DL1_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL12_CH1", AFE_CONN52, I_DL12_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL12_CH2", AFE_CONN52, I_DL12_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL2_CH1", AFE_CONN52, I_DL2_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL2_CH2", AFE_CONN52, I_DL2_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL3_CH1", AFE_CONN52, I_DL3_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL3_CH2", AFE_CONN52, I_DL3_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL4_CH1", AFE_CONN52_1, I_DL4_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL4_CH2", AFE_CONN52_1, I_DL4_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL5_CH1", AFE_CONN52_1, I_DL5_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL5_CH2", AFE_CONN52_1, I_DL5_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL6_CH1", AFE_CONN52_1, I_DL6_CH1, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL6_CH2", AFE_CONN52_1, I_DL6_CH2, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("ADDA_UL_CH2", AFE_CONN52,
 				    I_ADDA_UL_CH2, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("ADDA_UL_CH1", AFE_CONN52,
@@ -226,14 +262,36 @@ static const struct snd_kcontrol_new mtk_adda_dl_ch3_mix[] = {
 static const struct snd_kcontrol_new mtk_adda_dl_ch4_mix[] = {
 	SOC_DAPM_SINGLE_AUTODISABLE("DL1_CH1", AFE_CONN53, I_DL1_CH1, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("DL1_CH2", AFE_CONN53, I_DL1_CH2, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL12_CH1", AFE_CONN53, I_DL12_CH1, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL12_CH2", AFE_CONN53, I_DL12_CH2, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("DL2_CH1", AFE_CONN53, I_DL2_CH1, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("DL2_CH2", AFE_CONN53, I_DL2_CH2, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("DL3_CH1", AFE_CONN53, I_DL3_CH1, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("DL3_CH2", AFE_CONN53, I_DL3_CH2, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL4_CH1", AFE_CONN53_1, I_DL4_CH1, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL4_CH2", AFE_CONN53_1, I_DL4_CH2, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL5_CH1", AFE_CONN53_1, I_DL5_CH1, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("DL5_CH2", AFE_CONN53_1, I_DL5_CH2, 1, 0),
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	SOC_DAPM_SINGLE_AUTODISABLE("DL6_CH1", AFE_CONN53_1, I_DL6_CH1, 1, 0),
+	SOC_DAPM_SINGLE_AUTODISABLE("DL6_CH2", AFE_CONN53_1, I_DL6_CH2, 1, 0),
+#else
 	SOC_DAPM_SINGLE_AUTODISABLE("DL6_CH2", AFE_CONN53_1, I_DL6_CH1, 1, 0),
+#endif
+// ALPS05007528 end
 	SOC_DAPM_SINGLE_AUTODISABLE("ADDA_UL_CH2", AFE_CONN53,
 				    I_ADDA_UL_CH2, 1, 0),
 	SOC_DAPM_SINGLE_AUTODISABLE("ADDA_UL_CH1", AFE_CONN53,
@@ -1078,7 +1136,6 @@ static const struct snd_soc_dapm_route mtk_dai_adda_routes[] = {
 
 	{"ADDA_DL_CH1", "DL7_CH1", "DL7"},
 	{"ADDA_DL_CH2", "DL7_CH2", "DL7"},
-
 	{"ADDA_DL_CH1", "DL8_CH1", "DL8"},
 	{"ADDA_DL_CH2", "DL8_CH2", "DL8"},
 
@@ -1103,27 +1160,66 @@ static const struct snd_soc_dapm_route mtk_dai_adda_routes[] = {
 	{"ADDA Playback", NULL, "ADDA Playback Enable"},
 
 	{"ADDA_DL_CH3", "DL1_CH1", "DL1"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL1_CH2", "DL1"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL1_CH1", "DL1"},
 	{"ADDA_DL_CH4", "DL1_CH2", "DL1"},
 
 	{"ADDA_DL_CH3", "DL12_CH1", "DL12"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL12_CH2", "DL12"},
+	{"ADDA_DL_CH4", "DL12_CH1", "DL12"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL12_CH2", "DL12"},
 
 	{"ADDA_DL_CH3", "DL6_CH1", "DL6"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL6_CH2", "DL6"},
+	{"ADDA_DL_CH4", "DL6_CH1", "DL6"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL6_CH2", "DL6"},
 
 	{"ADDA_DL_CH3", "DL2_CH1", "DL2"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL2_CH2", "DL2"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL2_CH1", "DL2"},
 	{"ADDA_DL_CH4", "DL2_CH2", "DL2"},
 
 	{"ADDA_DL_CH3", "DL3_CH1", "DL3"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL3_CH2", "DL3"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL3_CH1", "DL3"},
 	{"ADDA_DL_CH4", "DL3_CH2", "DL3"},
 
 	{"ADDA_DL_CH3", "DL4_CH1", "DL4"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL4_CH2", "DL4"},
+	{"ADDA_DL_CH4", "DL4_CH1", "DL4"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL4_CH2", "DL4"},
 
 	{"ADDA_DL_CH3", "DL5_CH1", "DL5"},
+// ALPS05007528 begin
+#if defined(CONFIG_SND_SOC_DSPK_LOL_HP)
+	{"ADDA_DL_CH3", "DL5_CH2", "DL5"},
+	{"ADDA_DL_CH4", "DL5_CH1", "DL5"},
+#endif
+// ALPS05007528 end
 	{"ADDA_DL_CH4", "DL5_CH2", "DL5"},
 
 	{"ADDA CH34 Playback", NULL, "ADDA_DL_CH3"},
@@ -1362,11 +1458,7 @@ static int mtk_dai_adda_hw_params(struct snd_pcm_substream *substream,
 			regmap_update_bits(afe->regmap,
 					   AFE_ADDA_TOP_CON0,
 					   0x1 << 0,
-#if defined(CONFIG_SND_SOC_CS35L41)
-					   1);
-#else
 					   0x0 << 0);
-#endif
 
 			/* mtkaif_rxif_data_mode = 0, amic */
 			regmap_update_bits(afe->regmap,
