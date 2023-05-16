@@ -360,7 +360,7 @@ int afe_pcm_ipi_to_dsp(int command, struct snd_pcm_substream *substream,
 	if (task_id < 0 || task_id >= AUDIO_TASK_DAI_NUM)
 		return -1;
 
-	if (get_task_attr(task_id, ADSP_TASK_ATTR_RUNTIME) <= 0 ||
+	if (get_task_attr(task_id, ADSP_TASK_ATTR_RUMTIME) <= 0 ||
 	    get_task_attr(task_id, ADSP_TASK_ATTR_DEFAULT) <= 0)
 		return -1;
 
@@ -393,12 +393,13 @@ int afe_pcm_ipi_to_dsp(int command, struct snd_pcm_substream *substream,
 		 */
 		ret = mtk_scp_ipi_send(get_dspscene_by_dspdaiid(task_id),
 				       AUDIO_IPI_PAYLOAD,
-				       AUDIO_IPI_MSG_NEED_ACK,
-				       AUDIO_DSP_TASK_PCM_HWPARAM,
-				       sizeof(dsp_memif->msg_atod_share_buf.phy_addr),
-				       0,
-				       (char *)
-				       &dsp_memif->msg_atod_share_buf.phy_addr);
+				 AUDIO_IPI_MSG_NEED_ACK,
+				 AUDIO_DSP_TASK_PCM_HWPARAM,
+				 sizeof(unsigned int),
+				 (unsigned int)
+				 dsp_memif->msg_atod_share_buf.phy_addr,
+				 (char *)
+				 &dsp_memif->msg_atod_share_buf.phy_addr);
 		break;
 	case AUDIO_DSP_TASK_PCM_PREPARE:
 		set_aud_buf_attr(&dsp_memif->audio_afepcm_buf,
@@ -423,8 +424,9 @@ int afe_pcm_ipi_to_dsp(int command, struct snd_pcm_substream *substream,
 				       AUDIO_IPI_PAYLOAD,
 				       AUDIO_IPI_MSG_NEED_ACK,
 				       AUDIO_DSP_TASK_PCM_PREPARE,
-				       sizeof(dsp_memif->msg_atod_share_buf.phy_addr),
-				       0,
+				       sizeof(unsigned int),
+				       (unsigned int)
+				       dsp_memif->msg_atod_share_buf.phy_addr,
 				       (char *)
 				       &dsp_memif->msg_atod_share_buf.phy_addr);
 		break;
