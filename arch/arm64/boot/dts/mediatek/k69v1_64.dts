@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -91,6 +92,142 @@
 	};
 };
 
+
+&mt_charger {
+	interrupt-parent = <&pio>;
+	reverse-gpio = <&pio 91 0>;
+	pinctrl-names = "reverse_high", "reverse_low";
+	pinctrl-0 = <&reverse_high>;
+	pinctrl-1 = <&reverse_low>;
+};
+
+
+&i2c7 {
+	fusb303@21 {
+		status = "ok";
+		compatible = "on,fusb303";
+		reg = <0x21>;
+		interrupt-parent = <&pio>;
+		interrupts = <41 0x2>;
+		fusb303,int-gpio = <&pio 41 0>;
+		fusb303,init-mode = <20>;			/* trysnk, DRP */
+		fusb303,host-current = <2>;			/* 180uA host current */
+		fusb303,drp-toggle-time =  <1>;			/* 70ms */
+		fusb303,drp-duty-time = <0>;			/* 60 duty time */
+		fusb303,autosink-threshold = <1>;		/* 3P1V */
+		fusb303,cc-debounce-time = <3>;			/* 150ms */
+	};
+};
+
+
+&i2c7 {
+	smb1351-charger@55 {
+		compatible = "qcom,smb1351_charger";
+		reg = <0x55>;
+		interrupt-parent = <&pio>;
+		interrupts = <20 IRQ_TYPE_EDGE_FALLING 20 0>;
+		qcom,recharge-disabled;
+		qcom,bc12_supported;
+		/* qcom,smb1351_susp = <&pio 21 0x0>; */
+		/* mi,connect_therm = <&pio 127 0x0>; */
+
+		charger_name = "primary_chg";
+		/*charger_name = "secondary_chg";*/
+		ichg = <1800000>; /* uA */
+		mivr = <4500000>; /* uV */
+		cv = <4396000>; /* uV */
+		ieoc = <200000>; /* uA */
+		safety_timer = <12>; /* hour */
+		en_st; /* safety timer */
+		/* en_te; */
+		en_wdt;
+	};
+
+};
+&lk_charger  {
+	/* charging current */
+	ac_charger_current = <1000000>;
+	non_std_ac_charger_current = <1000000>;
+
+	/* battery temperature protection */
+	temp_t4_threshold = <55>;
+	temp_t3_threshold = <45>;
+	temp_t1_threshold = <0>;
+};
+
+&charger {
+	algorithm_name = "SwitchCharging";
+
+	set_cap_delay = <10>;
+	enable_sw_jeita;
+	battery_cv = <4460000>;
+	usb_charger_current_suspend = <0>;
+	usb_charger_current_unconfigured = <70000>;
+	usb_charger_current_configured = <500000>;
+	usb_charger_current = <500000>;
+	ac_charger_current = <2050000>;
+	ac_charger_input_current = <2050000>;
+	non_std_ac_charger_current = <1000000>;
+	charging_host_charger_current = <1500000>;
+	apple_1_0a_charger_current = <650000>;
+	apple_2_1a_charger_current = <800000>;
+	ta_ac_charger_current = <2050000>;
+	hvdcp_charger_current = <3000000>;
+
+	pd_vbus_upper_bound = <9000000>;
+
+
+	/* sw jeita */
+	jeita_temp_above_t4_cv = <4100000>;
+	jeita_temp_t3_to_t4_cv = <4100000>;
+	jeita_temp_t2_to_t3_cv = <4460000>;
+	jeita_temp_t1_to_t2_cv = <4460000>;
+	jeita_temp_t0_to_t1_cv = <4460000>;
+	jeita_temp_below_t0_cv = <4460000>;
+
+
+	jeita_temp_t3_to_t4_cc = <2400000>;
+	jeita_temp_t2_to_t3_cc = <3000000>;
+	jeita_temp_t1_to_t2_cc = <2400000>;
+	jeita_temp_t0_to_t1_cc = <1000000>;
+
+	temp_t4_thres = <55>;
+	temp_t4_thres_minus_x_degree = <53>;
+	temp_t3_thres = <45>;
+	temp_t3_thres_minus_x_degree = <43>;
+	temp_t2_thres = <15>;
+	temp_t2_thres_plus_x_degree = <13>;
+	temp_t1_thres = <5>;
+	temp_t1_thres_plus_x_degree = <4>;
+	temp_t0_thres = <0>;
+	temp_t0_thres_plus_x_degree = <0>;
+	temp_neg_10_thres = <0>;
+
+	/* battery temperature protection */
+	enable_min_charge_temp;
+	min_charge_temp = <0>;
+	min_charge_temp_plus_x_degree = <2>;
+	max_charge_temp = <55>;
+	max_charge_temp_minus_x_degree = <53>;
+
+	qcom,thermal-mitigation-dcp
+		= <1800000 1800000 1800000 1800000 1800000 1800000 1800000
+		1800000 1800000 1800000 1800000 1800000 1600000 1400000
+		1200000 1000000>;
+	qcom,thermal-mitigation-qc3
+		= <2700000 2570000 2400000 2270000 2120000 1965000 1820000
+		1650000 1500000 1375000 1225000 1100000 975000 825000
+		675000 475000>;
+	qcom,thermal-mitigation-qc2
+		= <1625000 1625000 1625000 1625000 1625000 1525000 1425000
+		1325000 1225000 1125000 1025500 925000 825000 725000
+		625000 525000>;
+	qcom,thermal-mitigation-pd-base
+		= <3000000 2800000 2600000 2400000 2200000 2000000 1800000
+		1600000 1600000 1400000 1200000 1100000 1000000 900000
+		752500 525000>;
+};
+
 &i2c2 {
 	clock-frequency = <400000>;
 
@@ -127,6 +264,8 @@
 &mt6370_typec {
 	mt6370pd,intr_gpio_num = <41>; /* direct defined GPIO num */
 	mt6370pd,intr_gpio = <&pio 41 0x0>;
+	mt6370pd,usb_switch_gpio_num = <91>; /* direct defined GPIO num */
+	mt6370pd,usb_switch_gpio = <&pio 91 0x0>;
 };
 
 /* CONSYS GPIO standardization */

@@ -2,6 +2,7 @@
  * Mediatek's MT6785 SoC device tree source
  *
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -333,7 +334,7 @@ page_owner=on loop.max_part=7";
 		reserve-memory-scp_share {
 			compatible = "mediatek,reserve-memory-scp_share";
 			no-map;
-			size = <0 0x00320000>;
+			size = <0 0x00400000>;
 			alignment = <0 0x1000000>;
 			alloc-ranges = <0 0x40000000 0 0x50000000>;
 		};
@@ -370,6 +371,21 @@ page_owner=on loop.max_part=7";
 			alloc-ranges = <0 0x40000000 0 0x40000000>;
 		};
 
+#ifdef CONFIG_MICROTRUST_TEE_SUPPORT
+		soter-shared-mem {
+			compatible = "microtrust,shared_mem";
+			no-map;
+#if defined(CONFIG_MTK_SEC_VIDEO_PATH_SUPPORT) || \
+	defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
+			size = <0 0x800000>;
+			alignment = <0 0x1000000>;
+#else
+			size = <0 0x200000>;
+			alignment = <0 0x200000>;
+#endif
+			alloc-ranges = <0 0x40000000 0 0x50000000>;
+		};
+#endif
 	};
 
 	cpu_dbgapb: cpu_dbgapb@0e010000 {
@@ -2464,6 +2480,18 @@ page_owner=on loop.max_part=7";
 		io-channel-names = "thermistor-ch1";
 	};
 
+	tboard_thermistor4: thermal-sensor4 {
+		compatible = "mediatek,mtboard-thermistor4";
+		io-channels = <&auxadc 3>;
+		io-channel-names = "thermistor-ch3";
+	};
+
+	tboard_thermistor5: thermal-sensor5 {
+		compatible = "mediatek,mtboard-thermistor5";
+		io-channels = <&auxadc 4>;
+		io-channel-names = "thermistor-ch4";
+	};
+
 	drcc: drcc {
 		compatible = "mediatek,drcc";
 		state = <255>;
@@ -4404,9 +4432,24 @@ page_owner=on loop.max_part=7";
 		reg = <0 0x80210000 0 0x1000>;
 	};
 
-	goodix_fp: fingerprint {
-		compatible = "mediatek,goodix-fp";
+	fpsensor_fp_eint:fpsensor_fp_eint{
+		compatible = "mediatek,fpsensor_fp_eint";	
+		int-gpios = <&pio 5 0>;
 	};
+
+	rosemary_sar_eint:rosemary_sar_eint{
+		compatible = "mediatek,rosemary_sar_eint";
+		int-gpios = <&pio 12 0>;
+	};
+
+	fpsensor_finger:fpsensor_finger{
+		compatible = "mediatek,fingerprint","mediatek,goodix-fp";
+		fpc,enable-wakeup;
+	};
+	/*
+	goodix_fp:goodix_fp{
+		compatible = "mediatek,goodix-fp";
+	};*/
 
 	accdet: accdet {
 		compatible = "mediatek,pmic-accdet";
@@ -4430,6 +4473,26 @@ page_owner=on loop.max_part=7";
 	 *	};
 	 *};
 	 */
+
+	//add for swtp by longcheer begin
+        swtp: swtp {
+        compatible = "mediatek, swtp-eint";
+        };
+    
+        swtp_1: swtp_1 {
+        compatible = "mediatek, swtp_1-eint";
+        };
+	//add for swtp by longcheer begin
+
+	ant_check {
+		compatible = "longcheer,ant_check";
+		ant_check_gpio = <&pio 72 0x0>;
+	};
+
+	ant_check_div {
+		compatible = "longcheer,ant_check_div";
+		ant_check_div_gpio = <&pio 75 0x0>;
+	};
 
 	mt6359_gauge {
 		compatible = "mediatek,mt6359_gauge";
@@ -5239,34 +5302,39 @@ page_owner=on loop.max_part=7";
 		compatible = "mediatek,mt-charger";
 	};
 
+	thermal_message: thermal-message {};
+	
 	lk_charger: lk_charger {
 		compatible = "mediatek,lk_charger";
 		enable_anime;
 		/* enable_pe_plus; */
-		enable_pd20_reset;
-		power_path_support;
+		/* enable_pd20_reset; */
+		/* power_path_support; */
 		max_charger_voltage = <6500000>;
+		min_charger_voltage = <4000000>;
 		fast_charge_voltage = <3000000>;
 
 		/* charging current */
 		usb_charger_current = <500000>;
-		ac_charger_current = <2050000>;
-		ac_charger_input_current = <3200000>;
-		non_std_ac_charger_current = <500000>;
+		ac_charger_current = <1500000>;
+		ac_charger_input_current = <1500000>;
+		non_std_ac_charger_current = <1000000>;
 		charging_host_charger_current = <1500000>;
-		ta_ac_charger_current = <3000000>;
-		pd_charger_current = <500000>;
+		ta_ac_charger_current = <1500000>;
+		pd_charger_current = <1500000>;
 
 		/* battery temperature protection */
-		temp_t4_threshold = <50>;
-		temp_t3_threshold = <45>;
-		temp_t1_threshold = <0>;
+		/*temp_t4_threshold = <50>;*/
+		temp_t3_threshold = <58>;
+		temp_t2_threshold = <48>;
+		temp_t1_threshold = <15>;
+		temp_t0_threshold = <(-10)>;
 	};
 
 	charger: charger {
 		compatible = "mediatek,charger";
-		algorithm_name = "SwitchCharging";
-		/* enable_sw_jeita; */
+		algorithm_name = "SwitchCharging2";
+		enable_sw_jeita;
 		/* enable_pe_plus; */
 		/* enable_pe_2; */
 		/* enable_pe_3; */
@@ -5276,9 +5344,107 @@ page_owner=on loop.max_part=7";
 		enable_dynamic_mivr;
 
 		/* common */
-		battery_cv = <4350000>;
-		max_charger_voltage = <6500000>;
+		battery_cv = <4450000>;
+		max_charger_voltage = <13500000>;
 		min_charger_voltage = <4600000>;
+
+		/* vote */
+		enable_vote;
+		//enable_cv_step;
+		step_a = <4250000>;
+		step_b = <4450000>;
+		current_a = <5400000>;
+		current_b = <3520000>;
+		current_max = <6000000>;
+		step_hy_down_a = <150000>;
+		step_hy_down_b = <150000>;
+
+		/* ffc */
+		enable_ffc;
+		non_ffc_ieoc = <200000>;
+		non_ffc_cv = <4450000>;
+		ffc_ieoc = <550000>;
+		ffc_ieoc_warm_temp_thres = <35>;
+		ffc_ieoc_warm = <600000>;
+		ffc_cv = <4480000>;
+
+		/* battery verify */
+		mi,fcc-batt-unverify-ua = <2000000>;
+
+		/* sw jeita */
+		/* enable_sw_jeita; */
+		jeita_temp_above_t4_cv = <4100000>;
+		jeita_temp_t3_to_t4_cv = <4100000>;
+		jeita_temp_t2_to_t3_cv = <4450000>;
+		jeita_temp_t1p5_to_t2_cv = <4450000>;
+		jeita_temp_t1_to_t1p5_cv = <4450000>;
+		jeita_temp_t0_to_t1_cv = <4450000>;
+		jeita_temp_tn1_to_t0_cv = <4450000>;
+		jeita_temp_below_t0_cv = <4450000>;
+		temp_t4_thres = <60>;
+		temp_t4_thres_minus_x_degree = <58>;
+		temp_t3_thres = <48>;
+		temp_t3_thres_minus_x_degree = <46>;
+		temp_t2_thres = <15>;
+		temp_t2_thres_plus_x_degree = <17>;
+		temp_t1p5_thres = <10>;
+		temp_t1p5_thres_plus_x_degree = <11>;
+		temp_t1_thres = <5>;
+		temp_t1_thres_plus_x_degree = <6>;
+		temp_t0_thres = <0>;
+		temp_t0_thres_plus_x_degree = <1>;
+		temp_tn1_thres = <(-10)>;
+		temp_tn1_thres_plus_x_degree = <(-9)>;
+		temp_neg_10_thres = <(-10)>;
+		temp_t3_to_t4_fcc = <2450000>;
+		temp_t2_to_t3_fcc = <6000000>;
+		temp_t1p5_to_t2_fcc = <3900000>;
+		temp_t1_to_t1p5_fcc = <2450000>;
+		temp_t0_to_t1_fcc = <1000000>;
+		temp_tn1_to_t0_fcc = <500000>;
+		/* battery temperature protection */
+		enable_min_charge_temp;
+		min_charge_temp = <0>;
+		min_charge_temp_plus_x_degree = <2>;
+		max_charge_temp = <60>;
+		max_charge_temp_minus_x_degree = <58>;
+
+		qcom,thermal-mitigation-dcp
+			= <2000000 1900000 1800000 1700000 1600000 1500000 1400000
+			1300000 1200000 1100000 1000000 900000 800000 700000
+			600000 500000>;
+		qcom,thermal-mitigation-qc3p5
+			= <4500000 4200000 4000000 3800000 3600000 3400000 3200000
+			3100000 3000000 2800000 2600000 2400000 2200000 2000000
+			1000000 700000>;
+		qcom,thermal-mitigation-qc3
+			= <3600000 3600000 3600000 3500000 3400000 3300000 3200000
+			3100000 3000000 2800000 2600000 2400000 2200000 2000000
+			1000000 700000>;
+		qcom,thermal-mitigation-qc3-classb
+			= <5100000 4700000 4300000 4000000 3600000 3500000 3400000
+			3400000 3400000 3200000 2500000 2200000 2000000 1300000
+			1000000 700000>;
+		qcom,thermal-mitigation-qc2
+			= <1800000 1700000 1600000 1500000 1400000 1300000 1200000
+			1100000 1000000 900000 800000 700000 600000 600000
+			600000 600000>;
+		qcom,thermal-mitigation-pd-base
+			= <6000000 5700000 5400000 5000000 4700000 4300000 4100000
+			3800000 3500000 3200000 2800000 2400000 2000000 700000
+			500000 300000>;
+
+		bc12_charger = <0>;
+
+		/* xiaomi pps */
+		xm_pps_single_charger_input_current = <2980000>;
+		xm_pps_single_charger_current = <6000000>;
+		xm_pps_dual_charger_input_current = <2980000>;
+		xm_pps_dual_charger_chg1_current = <500000>;
+		xm_pps_dual_charger_chg2_current = <2500000>;
+		xm_pps_max_vbus = <12000000>;
+		xm_pps_max_ibus = <2980000>;
+		xm_pps_single_charger_current_non_verified_pps = <4800000>;
 
 		/* dynamic mivr */
 		min_charger_voltage_1 = <4400000>;
@@ -5290,79 +5456,15 @@ page_owner=on loop.max_part=7";
 		usb_charger_current_unconfigured = <70000>;
 		usb_charger_current_configured = <500000>;
 		usb_charger_current = <500000>;
-		ac_charger_current = <2050000>;
-		ac_charger_input_current = <3200000>;
-		non_std_ac_charger_current = <500000>;
+		ac_charger_current = <2000000>;
+		ac_charger_input_current = <2000000>;
+		qc_charger_input_current = <2000000>;
+		non_std_ac_charger_current = <1000000>;
 		charging_host_charger_current = <1500000>;
 		apple_1_0a_charger_current = <650000>;
 		apple_2_1a_charger_current = <800000>;
-		ta_ac_charger_current = <3000000>;
-
-		/* sw jeita */
-		jeita_temp_above_t4_cv = <4240000>;
-		jeita_temp_t3_to_t4_cv = <4240000>;
-		jeita_temp_t2_to_t3_cv = <4340000>;
-		jeita_temp_t1_to_t2_cv = <4240000>;
-		jeita_temp_t0_to_t1_cv = <4040000>;
-		jeita_temp_below_t0_cv = <4040000>;
-		temp_t4_thres = <50>;
-		temp_t4_thres_minus_x_degree = <47>;
-		temp_t3_thres = <45>;
-		temp_t3_thres_minus_x_degree = <39>;
-		temp_t2_thres = <10>;
-		temp_t2_thres_plus_x_degree = <16>;
-		temp_t1_thres = <0>;
-		temp_t1_thres_plus_x_degree = <6>;
-		temp_t0_thres = <0>;
-		temp_t0_thres_plus_x_degree = <0>;
-		temp_neg_10_thres = <0>;
-
-		/* battery temperature protection */
-		enable_min_charge_temp;
-		min_charge_temp = <0>;
-		min_charge_temp_plus_x_degree = <6>;
-		max_charge_temp = <50>;
-		max_charge_temp_minus_x_degree = <47>;
-
-		/* PE */
-		ta_12v_support;
-		ta_9v_support;
-		pe_ichg_level_threshold = <1000000>; /* uA */
-		ta_ac_12v_input_current = <3200000>;
-		ta_ac_9v_input_current = <3200000>;
-		ta_ac_7v_input_current = <3200000>;
-
-		/* PE 2.0 */
-		pe20_ichg_level_threshold = <1000000>; /* uA */
-		ta_start_battery_soc = <0>;
-		ta_stop_battery_soc = <85>;
-
-		/* PE 4.0 */
-		high_temp_to_leave_pe40 = <46>;
-		high_temp_to_enter_pe40 = <39>;
-		low_temp_to_leave_pe40 = <10>;
-		low_temp_to_enter_pe40 = <16>;
-
-		/* PE 4.0 single charger*/
-		pe40_single_charger_input_current = <3000000>;
-		pe40_single_charger_current = <3000000>;
-
-		/* PE 4.0 dual charger*/
-		pe40_dual_charger_input_current = <3000000>;
-		pe40_dual_charger_chg1_current = <2000000>;
-		pe40_dual_charger_chg2_current = <2000000>;
-		pe40_stop_battery_soc = <80>;
-
-		/* PE 4.0 cable impedance (mohm) */
-		pe40_r_cable_1a_lower = <540>;
-		pe40_r_cable_2a_lower = <403>;
-		pe40_r_cable_3a_lower = <264>;
-
-		/* dual charger */
-		chg1_ta_ac_charger_current = <1500000>;
-		chg2_ta_ac_charger_current = <1500000>;
-		slave_mivr_diff = <100000>;
-		dual_polling_ieoc = <750000>;
+		ta_ac_charger_current = <2980000>;
+		check_hv_current = <1000000>;
 
 		/* cable measurement impedance */
 		cable_imp_threshold = <699>;
@@ -5375,17 +5477,43 @@ page_owner=on loop.max_part=7";
 
 		/* PD */
 		pd_vbus_low_bound = <5000000>;
-		pd_vbus_upper_bound = <5000000>;
+		pd_vbus_upper_bound = <9000000>;
 		pd_ichg_level_threshold = <1000000>; /* uA */
 		pd_stop_battery_soc = <80>;
 
 		ibus_err = <14>;
 		vsys_watt = <5000000>;
+
+		qcom,soc_decimal_rate = <
+			0	38
+			10	35
+			20	33
+			30	33
+			40	33
+			50	33
+			60	33
+			70	33
+			80	25
+			90	20
+			95	10
+			99	5	>;
 	};
 
 	pd_adapter: pd_adapter {
 		compatible = "mediatek,pd_adapter";
 		adapter_name = "pd_adapter";
+	};
+
+	cp_qc30: cp_qc30 {
+	};
+
+	usbpd_pm: usbpd_pm {
+	};
+
+	onewire_gpio: onewire_gpio {
+	};
+
+	maxim_ds28e16: maxim_ds28e16 {
 	};
 
 	rt9465_slave_chr: rt9465_slave_chr {
@@ -5409,6 +5537,18 @@ page_owner=on loop.max_part=7";
 		mediatek,clkbuf-controls-for-desense = <0 4 0 4 0 0 0>;
 	};
 
+	nfc:nfc {
+			compatible = "mediatek,nfc-gpio-v2";
+			gpio-rst = <32>;
+			gpio-rst-std = <&pio 32 0x0>;
+			gpio-irq = <31>;
+			gpio-irq-std = <&pio 31 0x0>;
+		};
+
+	irq_nfc: irq_nfc {
+		compatible = "mediatek,irq_nfc-eint";
+	};
+
 	gpio_usage_mapping: gpio_usage_mapping {
 		compatible = "mediatek,gpio_usage_mapping";
 	};
@@ -5421,6 +5561,9 @@ page_owner=on loop.max_part=7";
 
 	touch: touch {
 		compatible = "goodix,touch", "mediatek,touch";
+	};
+	xiaomi_touch: xiaomi_touch {
+
 	};
 
 	tcpc_pd: tcpc_pd {
@@ -5444,6 +5587,208 @@ page_owner=on loop.max_part=7";
 
 	md1_sim2_hot_plug_eint:md1_sim2_hot_plug_eint{
 	};
+};
+
+&bat_gm30 {
+	suppld-maxim;
+	#include "mediatek/bat_setting/mt6785_battery_table.dtsi"
+};
+
+&odm {
+	simtray {
+		compatible = "xiaomi,simtray-status";
+		status-gpio =	<&pio 140 0>;
+	};
+};
+
+&pio {
+	/* bq25970 */
+	bq2597x_int_default: bq2597x_int_default {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO12__FUNC_GPIO12>;
+			slew-rate = <0>;
+			bias-pull-up = <11>;
+		};
+	};
+
+	bq2597x_int_suspend: bq2597x_int_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO12__FUNC_GPIO12>;
+			slew-rate = <0>;
+			bias-pull-up = <11>;
+		};
+	};
+};
+
+&i2c7 {
+	clock-frequency = <100000>;
+	bq2597x-standalone@65 {
+		compatible = "ti,bq2597x-standalone";
+		reg = <0x65>;
+		interrupt-parent = <&pio>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING 12 0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&bq2597x_int_default &bq2597x_int_suspend>;
+
+		//ti,bq2597x,bat-ovp-disable;
+		ti,bq2597x,bat-ovp-alarm-disable;
+		//ti,bq2597x,bat-ocp-disable;
+		//ti,bq2597x,bat-ocp-alarm-disable;
+		ti,bq2597x,bat-ucp-alarm-disable;
+		ti,bq2597x,bat-ucp-disable;
+
+		//ti,bq2597x,bus-ovp-alarm-disable;
+		//ti,bq2597x,bus-ocp-disable;
+		//ti,bq2597x,bus-ocp-alarm-disable;
+		ti,bq2597x,bat-therm-disable;
+		ti,bq2597x,bus-therm-disable;
+		ti,bq2597x,die-therm-disable;
+
+		ti,bq2597x,bat-ovp-threshold = <4525>;
+		ti,bq2597x,bat-ovp-alarm-threshold = <4490>;
+		ti,bq2597x,bat-ocp-threshold = <7000>;
+		ti,bq2597x,bat-ocp-alarm-threshold = <6000>;
+
+		ti,bq2597x,bus-ovp-threshold = <12000>;
+		ti,bq2597x,bus-ovp-alarm-threshold = <11000>;
+		//ti,bq2597x,bus-ocp-threshold = <2200>;
+		//ti,bq2597x,bus-ocp-alarm-threshold = <2000>;
+		ti,bq2597x,bus-ocp-threshold = <3750>;
+		ti,bq2597x,bus-ocp-alarm-threshold = <3500>;
+
+		//ti,bq2597x,bat-ucp-alarm-threshold = <2000>;
+
+		ti,bq2597x,bat-therm-threshold = <0x15>;/*4.1%*/
+		ti,bq2597x,bus-therm-threshold = <0x15>;/*4.1%*/
+		ti,bq2597x,die-therm-threshold = <145>;
+
+		ti,bq2597x,ac-ovp-threshold = <14>;
+		ti,bq2597x,sense-resistor-mohm = <5>;
+
+		//sc8551,bypass-enable;
+		sc8551,ac-ovp-threshold = <13>;
+	};
+	ln8000_charger@51 {
+		compatible = "lionsemi,ln8000";
+		reg = <0x51>;
+		/* bank <bit-idx> <flags: active-low> */
+		//irq-gpios = <&tlmm 55 0x2002>;
+
+        ln8000_charger,irq_index = <35>;  /* please update index value */
+		//interrupt-parent = <&pio>;
+		//interrupts = <12 IRQ_TYPE_EDGE_FALLING 12 0>;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&bq2597x_int_default &bq2597x_int_suspend>;
+
+		/* device configuration */
+		ln8000_charger,bat-ovp-threshold = <4550>;
+		ln8000_charger,bat-ovp-alarm-threshold = <4525>;
+		ln8000_charger,bus-ovp-threshold = <13000>;
+		ln8000_charger,bus-ovp-alarm-threshold = <11000>;
+		ln8000_charger,bus-ocp-threshold = <3750>;
+		ln8000_charger,bus-ocp-alarm-threshold = <3500>;
+		ln8000_charger,ntc-alarm-cfg  = <226>;
+		/* protection enable/disable flags
+		 *   vbat-ovp-disable
+		 *   vbat-reg-disable
+		 *   iin-ocp-disable
+		 *   iin-reg-disable
+		 *   tbus-mon-disable
+		 *   tbat-mon-disable
+		 *   tdie-prot-disable
+		 *   tdie-reg-disable
+		 *   revcurr-prot-disable
+		 */
+		ln8000_charger,tdie-prot-disable;
+		ln8000_charger,tbus-mon-disable;
+		ln8000_charger,tbat-mon-disable;
+		ln8000_charger,iin-ocp-disable;
+		ln8000_charger,iin-reg-disable;
+		ln8000_charger,tdie-reg-disable;
+		ln8000_charger,vbat-reg-disable;
+	};
+
+};
+
+&cp_qc30 {
+	compatible = "xiaomi,cp-qc30";
+	status = "okay";
+	mi,qc3-bat-volt-max = <4480>;
+	mi,qc3-bat-curr-max = <3600>;
+	mi,qc3-bus-volt-max = <12000>;
+	mi,qc3-bus-curr-max = <2100>;
+	mi,qc3-non-ffc-bat-volt-max = <4450>;
+
+	mi,qc3-27w-bat-curr-max = <5400>;
+	mi,qc3-27w-bus-curr-max = <2700>;
+	mi,qc3p-bat-curr-max = <4500>;
+	mi,qc3p-bus-curr-max = <2300>;
+	//mi,cp-sec-enable;
+};
+
+&usbpd_pm {
+	compatible = "xiaomi,usbpd-pm";
+	status = "okay";
+	mi,pd-bat-volt-max = <4480>;
+	mi,pd-bat-curr-max = <6000>;
+	mi,pd-bus-volt-max = <12000>;
+	mi,pd-bus-curr-max = <3000>;
+	mi,pd-non-ffc-bat-volt-max = <4450>;
+	//mi,cp-sec-enable;
+};
+
+&pio {
+	/* One wire GPIO Settings Start */
+	/* default: GPIO67, output, high */
+	onewire_gpio_active: onewire_gpio_active@gpio67 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO67__FUNC_GPIO67>;
+			slew-rate = <1>;
+			//bias-disable;
+			drive-strength = <MTK_DRIVE_4mA>;
+			output-high;
+		};
+	};
+
+	onewire_gpio_sleep: onewire_gpio_sleep@gpio67 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO67__FUNC_GPIO67>;
+			slew-rate = <1>;
+			//bias-disable;
+			drive-strength = <MTK_DRIVE_4mA>;
+			output-high;
+		};
+	};
+};
+
+&onewire_gpio {
+	compatible = "xiaomi,onewire_gpio";
+	label = "xm_onewire";
+	xiaomi,version = <1>;
+	xiaomi,ow_gpio = <&pio 67 0x00>;
+	xiaomi,gpio_number = <67>;
+	mi,onewire-gpio-dir-addr = <0x10005020>;
+	mi,onewire-gpio-dir-set-addr = <0x10005024>;
+	mi,onewire-gpio-dir-clr-addr = <0x10005028>;
+	mi,onewire-gpio-dout-addr = <0x10005120>;
+	mi,onewire-gpio-dout-set-addr = <0x10005124>;
+	mi,onewire-gpio-dout-clr-addr = <0x10005128>;
+	mi,onewire-gpio-din-addr = <0x10005220>;
+	pinctrl-names = "onewire_active", "onewire_sleep";
+	pinctrl-0 = <&onewire_gpio_active>;
+	pinctrl-1 = <&onewire_gpio_sleep>;
+	status = "ok";
+};
+
+&maxim_ds28e16 {
+	compatible = "maxim,ds28e16";
+	label = "max_ds28e16";
+	maxim,version = <1>;
+	status = "ok";
+};
+
+&pd_adapter {
+	mi,non-mtk-pps-ctrl;
 };
 
 &i2c6 {
@@ -5662,6 +6007,45 @@ page_owner=on loop.max_part=7";
 	aud_gpio_i2s5_on: aud_gpio_i2s5_on {
 	};
 };
+
+/ {
+	aw8622 {
+		compatible = "awinic,aw8622";
+		hwen-gpio = <&pio 202 0x00>; //hwen gpio
+		pwm_ch = <0>;
+		waveform_sample_period = <41666>; //24k unit ns
+		center_freq = <208>; // 208 hz unit hz
+		default_pwm_freq = <26000>;  //24 unit hz
+
+        pinctrl-names = "haptic_gpio_aw8622_default", "haptic_gpio_aw8622_set";
+        pinctrl-0 = <&haptic_gpio_aw8622_default>;
+        pinctrl-1 = <&haptic_gpio_aw8622_set>;
+        status = "okay";
+	};
+};
+
+
+&pio {
+        /* HAPTIC GPIO Settings -Start */
+        /* default: GPIO131, output, high */
+        haptic_gpio_aw8622_default:haptic_gpio_aw8622_default@gpio26 {
+                pins_cmd_dat {
+                        pinmux = <PINMUX_GPIO26__FUNC_GPIO26>;
+                        slew-rate = <1>;
+                        bias-disable;
+                        output-low;
+                        input-schmitt-enable = <0>;
+                };
+        };
+
+        haptic_gpio_aw8622_set:haptic_gpio_aw8622_set@gpio26 {
+                pins_cmd_dat {
+                        pinmux = <PINMUX_GPIO26__FUNC_PWM_0>;
+                        slew-rate = <1>;
+                        output-high;
+                };
+        };
+}; /* HAPTIC GPIO Settings -End */
 
 #include "mediatek/mt6359.dtsi"
 #include "mediatek/cust_mt6785_msdc.dtsi"
