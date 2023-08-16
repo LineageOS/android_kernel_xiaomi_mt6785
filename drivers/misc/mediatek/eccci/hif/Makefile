@@ -29,7 +29,7 @@ ccci_hif_all-y += ccci_hif.o
 ccci_hif_all-y += ccci_hif_cldma.o
 ccci_hif_all-y += ccci_hif_dpmaif.o
 ccci_hif_all-y += dpmaif_drv.o
-ccci_hif_all-y += net_speed_monitor.o
+ccci_hif_all-$(CONFIG_MTK_ECCCI_NET_SPEED_MONITOR) += net_speed_monitor.o
 ccci_hif_all-y += ccci_ringbuf.o ccci_hif_ccif.o
 
 

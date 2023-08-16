@@ -943,7 +943,7 @@ static int dpmaif_net_rx_push_thread(void *arg)
 		skb = ccci_skb_dequeue(&queue->skb_list);
 		if (!skb)
 			continue;
-#ifdef MT6297
+#if defined(MT6297) && defined(CONFIG_MTK_ECCCI_NET_SPEED_MONITOR)
 		mtk_ccci_add_dl_pkt_size(skb->len);
 #endif
 
@@ -3076,7 +3076,7 @@ retry:
 		tx_force_md_assert("HW_REG_CHK_FAIL");
 		ret = 0;
 	}
-#ifdef MT6297
+#if defined(MT6297) && defined(CONFIG_MTK_ECCCI_NET_SPEED_MONITOR)
 	if (ret == 0)
 		mtk_ccci_add_ul_pkt_size(total_size);
 #endif
@@ -4651,7 +4651,7 @@ int ccci_dpmaif_hif_init(unsigned char hif_id, unsigned char md_id)
 	hif_ctrl->traffic_monitor.data = (unsigned long)hif_ctrl;
 #endif
 	ccci_hif[hif_id] = (void *)hif_ctrl;
-#ifdef MT6297
+#if defined(MT6297) && defined(CONFIG_MTK_ECCCI_NET_SPEED_MONITOR)
 	mtk_ccci_speed_monitor_init();
 #endif
 	return 0;
