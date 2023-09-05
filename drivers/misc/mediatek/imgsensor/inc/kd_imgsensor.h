@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -173,7 +174,21 @@
 #define IMX091_SENSOR_ID                        0x0091
 #define IMX073_SENSOR_ID                        0x0046
 #define IMX058_SENSOR_ID                        0x0058
+#define IMX355OFILM_SENSOR_ID                   0x0355
+#define IMX355SUNNY_SENSOR_ID                   0x0356
+#define IMX355OFILM_INDIA_SENSOR_ID (0x0355 + 2)
+#define IMX355SUNNY_INDIA_SENSOR_ID (0x0355 + 3)
 /*OV*/
+#define OV64B40SEMCO_SENSOR_ID                  0x566442
+#define OV64B40OFILM_SENSOR_ID                  0x566443
+#define OV64B40SEMCO_INDIA_SENSOR_ID (0x566442 + 2)
+#define OV64B40OFILM_INDIA_SENSOR_ID (0x566442 + 3)
+#define OV13B10SUNNY_SENSOR_ID                  0x560D42
+#define OV13B10OFILM_SENSOR_ID                  (0x560D42 + 1)
+#define OV13B10SUNNY_INDIA_SENSOR_ID     (0x560D42 + 2)
+#define OV13B10OFILM_INDIA_SENSOR_ID     (0x560D42 + 3)
+#define OV02B1BOFILM_SENSOR_ID                  0x002b
+#define OV02B1BOFILM_INDIA_SENSOR_ID     (0x002b + 2)
 #define OV23850_SENSOR_ID                       0x023850
 #define OV16880_SENSOR_ID                       0x016880
 #define OV16825MIPI_SENSOR_ID                   0x016820
@@ -223,8 +238,7 @@
 #define OV2650_SENSOR_ID_2                      0x2652
 #define OV2650_SENSOR_ID_3                      0x2655
 #define OV20880MIPI_SENSOR_ID                   0x20880
-#define OV05A20_SENSOR_ID	                    0x5305
-
+#define OV05A20_SENSOR_ID	                0x5305
 /*S5K*/
 #define S5KJD1_SENSOR_ID                        0x3841
 #define S5K2LQSX_SENSOR_ID                      0x2c1a
@@ -319,11 +333,17 @@
 #define GC2235_SENSOR_ID                        0x2235
 #define GC2035_SENSOR_ID                        0x2035
 #define GC2145_SENSOR_ID                        0x2145
+#define GC02M1OFILM_SENSOR_ID			0x02E0
+#define GC02M1SUNNY_SENSOR_ID			(0x02E0 + 1)
+#define GC02M1OFILM_INDIA_SENSOR_ID (0x02E0 + 2)
+#define GC02M1SUNNY_INDIA_SENSOR_ID (0x02E0 + 3)
 #define GC0330_SENSOR_ID                        0xC1
 #define GC0329_SENSOR_ID                        0xC0
 #define GC0310_SENSOR_ID                        0xa310
 #define GC0313MIPI_YUV_SENSOR_ID                0xD0
 #define GC0312_SENSOR_ID                        0xb310
+#define GC02M1BSUNNY_SENSOR_ID                  (0x02E0 + 4)
+#define GC02M1BSUNNY_INDIA_SENSOR_ID            (0x02E0 + 6)
 /*SP*/
 #define SP0A19_YUV_SENSOR_ID                    0xA6
 #define SP2518_YUV_SENSOR_ID                    0x53
@@ -422,6 +442,14 @@
 #define SENSOR_DRVNAME_IMX073_MIPI_RAW          "imx073_mipi_raw"
 #define SENSOR_DRVNAME_IMX766_MIPI_RAW          "imx766_mipi_raw"
 /*OV*/
+#define SENSOR_DRVNAME_OV64B40SEMCO_MIPI_RAW    "ov64b40semco_mipi_raw"
+#define SENSOR_DRVNAME_OV64B40OFILM_MIPI_RAW    "ov64b40ofilm_mipi_raw"
+#define SENSOR_DRVNAME_OV13B10SUNNY_MIPI_RAW    "ov13b10sunny_mipi_raw"
+#define SENSOR_DRVNAME_OV13B10OFILM_MIPI_RAW    "ov13b10ofilm_mipi_raw"
+#define SENSOR_DRVNAME_IMX355OFILM_MIPI_RAW     "imx355ofilm_mipi_raw"
+#define SENSOR_DRVNAME_IMX355SUNNY_MIPI_RAW     "imx355sunny_mipi_raw"
+#define SENSOR_DRVNAME_OV02B1BOFILM_MIPI_RAW    "ov02b1bofilm_mipi_raw"
+
 #define SENSOR_DRVNAME_OV23850_MIPI_RAW         "ov23850_mipi_raw"
 #define SENSOR_DRVNAME_OV16880_MIPI_RAW         "ov16880_mipi_raw"
 #define SENSOR_DRVNAME_OV16885_MIPI_RAW         "ov16885_mipi_raw"
@@ -545,6 +573,8 @@
 #define SENSOR_DRVNAME_GC2235_RAW               "gc2235_raw"
 #define SENSOR_DRVNAME_GC2355_MIPI_RAW          "gc2355_mipi_raw"
 #define SENSOR_DRVNAME_GC2355_RAW               "gc2355_raw"
+#define SENSOR_DRVNAME_GC02M1OFILM_MIPI_RAW     "gc02m1ofilm_mipi_raw"
+#define SENSOR_DRVNAME_GC02M1SUNNY_MIPI_RAW     "gc02m1sunny_mipi_raw"
 #define SENSOR_DRVNAME_GC0330_YUV               "gc0330_yuv"
 #define SENSOR_DRVNAME_GC0329_YUV               "gc0329_yuv"
 #define SENSOR_DRVNAME_GC2145_MIPI_YUV          "gc2145_mipi_yuv"
@@ -552,6 +582,7 @@
 #define SENSOR_DRVNAME_GC0310_YUV               "gc0310_yuv"
 #define SENSOR_DRVNAME_GC0312_YUV               "gc0312_yuv"
 #define SENSOR_DRVNAME_GC0313MIPI_YUV           "gc0313_mipi_yuv"
+#define SENSOR_DRVNAME_GC02M1BSUNNY_MIPI_MONO   "gc02m1bsunny_mipi_mono"
 /*SP*/
 #define SENSOR_DRVNAME_SP0A19_YUV               "sp0a19_yuv"
 #define SENSOR_DRVNAME_SP2518_YUV               "sp2518_yuv"

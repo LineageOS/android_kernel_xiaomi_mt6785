@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,6 +22,10 @@
 
 #define IMGSENSOR_HW_POWER_INFO_MAX	12
 #define IMGSENSOR_HW_SENSOR_MAX_NUM	12
+
+#ifndef MIPI_SWITCH
+#define MIPI_SWITCH
+#endif
 
 enum IMGSENSOR_HW_PIN {
 	IMGSENSOR_HW_PIN_NONE = 0,
@@ -48,6 +53,7 @@ enum IMGSENSOR_HW_PIN_STATE {
 	IMGSENSOR_HW_PIN_STATE_LEVEL_1500,
 	IMGSENSOR_HW_PIN_STATE_LEVEL_1800,
 	IMGSENSOR_HW_PIN_STATE_LEVEL_2500,
+        IMGSENSOR_HW_PIN_STATE_LEVEL_2700,
 	IMGSENSOR_HW_PIN_STATE_LEVEL_2800,
 	IMGSENSOR_HW_PIN_STATE_LEVEL_2900,
 	IMGSENSOR_HW_PIN_STATE_LEVEL_HIGH,
@@ -91,6 +97,10 @@ enum Voltage {
 #define	DVDD   IMGSENSOR_HW_PIN_DVDD
 #define	DOVDD  IMGSENSOR_HW_PIN_DOVDD
 #define	AFVDD  IMGSENSOR_HW_PIN_UNDEF
+//mipi switch
+#define SWITCH_SEL IMGSENSOR_HW_PIN_MIPI_SWITCH_EN
+#define SWITCH_EN IMGSENSOR_HW_PIN_MIPI_SWITCH_SEL
+
 #define	VDD_None  IMGSENSOR_HW_PIN_NONE
 
 	/* For backward compatible */
@@ -106,6 +116,7 @@ enum Voltage {
 #define	Vol_1500  IMGSENSOR_HW_PIN_STATE_LEVEL_1500
 #define	Vol_1800  IMGSENSOR_HW_PIN_STATE_LEVEL_1800
 #define	Vol_2500  IMGSENSOR_HW_PIN_STATE_LEVEL_2500
+#define	Vol_2700  IMGSENSOR_HW_PIN_STATE_LEVEL_2700
 #define	Vol_2800  IMGSENSOR_HW_PIN_STATE_LEVEL_2800
 #define	Vol_2900  IMGSENSOR_HW_PIN_STATE_LEVEL_2900
 #endif
@@ -125,7 +136,7 @@ enum IMGSENSOR_HW_ID {
 
 #define IMGSENSOR_I2C_OF_DRV_NAME_0 "mediatek,camera_main"
 #define IMGSENSOR_I2C_OF_DRV_NAME_1 "mediatek,camera_sub"
-#define IMGSENSOR_I2C_OF_DRV_NAME_2 "mediatek,camera_main_hw"
+#define IMGSENSOR_I2C_OF_DRV_NAME_2 "mediatek,camera_main_two"
 
 enum IMGSENSOR_I2C_DEV {
 	IMGSENSOR_I2C_DEV_0,

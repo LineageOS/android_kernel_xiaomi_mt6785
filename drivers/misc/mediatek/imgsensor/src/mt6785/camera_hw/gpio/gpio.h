@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,6 +22,10 @@
 #include <linux/pinctrl/pinctrl.h>
 #include "imgsensor_hw.h"
 #include "imgsensor_common.h"
+
+#ifndef MIPI_SWITCH
+#define MIPI_SWITCH
+#endif
 
 enum GPIO_CTRL_STATE_CAM {
 	/* Main */
