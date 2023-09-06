@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -63,6 +64,14 @@ struct charger_consumer {
 extern struct charger_consumer *charger_manager_get_by_name(
 	struct device *dev,
 	const char *supply_name);
+extern int charger_manager_get_input_current_limit(
+	struct charger_consumer *consumer,
+	int idx,
+	int *input_current_uA);
+extern int charger_manager_get_input_current_limit(
+	struct charger_consumer *consumer,
+	int idx,
+	int *input_current_uA);
 extern int charger_manager_set_input_current_limit(
 	struct charger_consumer *consumer,
 	int idx,
@@ -97,6 +106,10 @@ extern int unregister_charger_manager_notifier(
 extern int charger_manager_enable_high_voltage_charging(
 	struct charger_consumer *consumer,
 	bool en);
+extern int charger_manager_enable_otg(
+	struct charger_consumer *consumer,
+	int idx,
+	bool en);
 extern int charger_manager_enable_power_path(
 	struct charger_consumer *consumer,
 	int idx,
@@ -109,12 +122,44 @@ extern int charger_manager_get_zcv(
 	struct charger_consumer *consumer,
 	int idx,
 	u32 *uV);
+#if defined(CONFIG_SMB1351_USB_CHARGER)
+extern int charger_manager_enable_chg_type_det(
+	bool en);
+#else
 extern int charger_manager_enable_chg_type_det(
 	struct charger_consumer *consumer,
 	bool en);
+#endif
+extern int charger_manager_get_ibus(int* ibus);
+extern int charger_manager_set_input_suspend(int suspend);
+extern int charger_manager_is_input_suspend(void);
+extern int charger_manager_get_prop_system_temp_level(void);
+extern int charger_manager_get_prop_system_temp_level_max(void);
+extern void charger_manager_set_prop_system_temp_level(int temp_level);
+
+extern void charger_manager_set_prop_set_temp_enable(int vol);
+extern int charger_manager_get_prop_set_temp_enable(void);
+extern void charger_manager_set_prop_set_temp_num(int vol);
+extern int charger_manager_get_prop_set_temp_num(void);
+
+extern int charger_manager_check_ra_detected(void);
+extern void charger_manager_set_ra_detected(int val);
+extern int charger_manager_pd_is_online(void);
+extern int charger_manager_pe2_is_online(void);
+extern int charger_manager_pe4_is_online(void);
+extern enum hvdcp_status charger_manager_check_hvdcp_status(void);
+extern int charger_manager_get_ibus(int* ibus);
+extern int charger_manager_set_charging_enable_all(bool enable);
+extern int charger_manager_set_input_suspend(int suspend);
+extern int charger_manager_is_input_suspend(void);
+extern int charger_manager_get_prop_system_temp_level(void);
+extern int charger_manager_get_prop_system_temp_level_max(void);
+extern void charger_manager_set_prop_system_temp_level(int temp_level);
 extern int mtk_chr_is_charger_exist(unsigned char *exist);
 extern bool is_power_path_supported(void);
 extern int charger_get_vbus(void);
 extern bool mt_charger_plugin(void);
-
+extern int charger_manager_pd_is_online(void);
+extern bool get_bq2597x_load_flag(void);
+extern bool get_ln8000_load_flag(void);
 #endif /* __MTK_CHARGER_H__ */
