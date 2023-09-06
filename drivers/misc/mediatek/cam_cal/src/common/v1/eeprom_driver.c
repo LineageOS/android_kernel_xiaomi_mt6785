@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -47,6 +48,7 @@
 #define CAM_CAL_I2C_DEV2_NAME "CAM_CAL_DEV2"
 #define CAM_CAL_I2C_DEV3_NAME "CAM_CAL_DEV3"
 #define CAM_CAL_I2C_DEV4_NAME "CAM_CAL_DEV4"
+#define CAM_CAL_I2C_DEV5_NAME "CAM_CAL_DEV5"
 
 static dev_t g_devNum = MKDEV(CAM_CAL_DEV_MAJOR_NUMBER, 0);
 static struct cdev *g_charDrv;
@@ -212,8 +214,8 @@ static int EEPROM_HW_i2c_probe
 	g_pstI2Cclients[I2C_DEV_IDX_1]->ext_flag &= ~I2C_POLLING_FLAG;
 #endif
 
-	/* Default EEPROM Slave Address Main= 0xa0 */
-	g_pstI2Cclients[I2C_DEV_IDX_1]->addr = 0x50;
+	/* Default EEPROM Slave Address Main= 0xa4 */
+	g_pstI2Cclients[I2C_DEV_IDX_1]->addr = 0x52;
 	spin_unlock(&g_spinLock);
 
 	return 0;
@@ -245,8 +247,8 @@ static int EEPROM_HW_i2c_probe2
 	g_pstI2Cclients[I2C_DEV_IDX_2]->ext_flag &= ~I2C_POLLING_FLAG;
 #endif
 
-	/* Default EEPROM Slave Address sub = 0xa8 */
-	g_pstI2Cclients[I2C_DEV_IDX_2]->addr = 0x54;
+	/* Default EEPROM Slave Address sub = 0xa0 */
+	g_pstI2Cclients[I2C_DEV_IDX_2]->addr = 0x50;
 	spin_unlock(&g_spinLock);
 
 	return 0;
@@ -276,8 +278,8 @@ static int EEPROM_HW_i2c_probe3
 	g_pstI2Cclients[I2C_DEV_IDX_3]->ext_flag &= ~I2C_POLLING_FLAG;
 #endif
 
-	/* Default EEPROM Slave Address Main2 = 0xa4 */
-	g_pstI2Cclients[I2C_DEV_IDX_3]->addr = 0x52;
+	/* Default EEPROM Slave Address Main2 = 0xa8 */
+	g_pstI2Cclients[I2C_DEV_IDX_3]->addr = 0x54;
 	spin_unlock(&g_spinLock);
 
 	return 0;
@@ -287,6 +289,68 @@ static int EEPROM_HW_i2c_probe3
  * CAMERA_HW_i2c_remove3
  *************************************************************/
 static int EEPROM_HW_i2c_remove3(struct i2c_client *client)
+{
+	return 0;
+}
+
+/********************************************************
+ * EEPROM_HW_i2c_probe4
+ ********************************************************/
+static int EEPROM_HW_i2c_probe4
+	(struct i2c_client *client, const struct i2c_device_id *id)
+{
+	/* get sensor i2c client */
+	spin_lock(&g_spinLock);
+	g_pstI2Cclients[I2C_DEV_IDX_4] = client;
+
+	/* set I2C clock rate */
+#ifdef CONFIG_MTK_I2C_EXTENSION
+	g_pstI2Cclients[I2C_DEV_IDX_4]->timing = gi2c_dev_timing[I2C_DEV_IDX_4];
+	g_pstI2Cclients[I2C_DEV_IDX_4]->ext_flag &= ~I2C_POLLING_FLAG;
+#endif
+
+	/* Default EEPROM Slave Address Main2 = 0x6e */
+	g_pstI2Cclients[I2C_DEV_IDX_4]->addr = 0x37;
+	spin_unlock(&g_spinLock);
+
+	return 0;
+}
+
+/*************************************************************
+ * CAMERA_HW_i2c_remove4
+ *************************************************************/
+static int EEPROM_HW_i2c_remove4(struct i2c_client *client)
+{
+	return 0;
+}
+
+/********************************************************
+ * EEPROM_HW_i2c_probe5
+ ********************************************************/
+static int EEPROM_HW_i2c_probe5
+	(struct i2c_client *client, const struct i2c_device_id *id)
+{
+	/* get sensor i2c client */
+	spin_lock(&g_spinLock);
+	g_pstI2Cclients[I2C_DEV_IDX_5] = client;
+
+	/* set I2C clock rate */
+#ifdef CONFIG_MTK_I2C_EXTENSION
+	g_pstI2Cclients[I2C_DEV_IDX_5]->timing = gi2c_dev_timing[I2C_DEV_IDX_5];
+	g_pstI2Cclients[I2C_DEV_IDX_5]->ext_flag &= ~I2C_POLLING_FLAG;
+#endif
+
+	/* Default EEPROM Slave Address Main2 = 0xa2 */
+	g_pstI2Cclients[I2C_DEV_IDX_5]->addr = 0x51;
+	spin_unlock(&g_spinLock);
+
+	return 0;
+}
+
+/*************************************************************
+ * CAMERA_HW_i2c_remove5
+ *************************************************************/
+static int EEPROM_HW_i2c_remove5(struct i2c_client *client)
 {
 	return 0;
 }
@@ -302,7 +366,14 @@ static const struct i2c_device_id
 	EEPROM_HW_i2c_id2[] = { {CAM_CAL_I2C_DEV2_NAME, 0}, {} };
 static const struct i2c_device_id
 	EEPROM_HW_i2c_id3[] = { {CAM_CAL_I2C_DEV3_NAME, 0}, {} };
+static const struct i2c_device_id
+	EEPROM_HW_i2c_id4[] = { {CAM_CAL_I2C_DEV4_NAME, 0}, {} };
+static const struct i2c_device_id
+	EEPROM_HW_i2c_id5[] = { {CAM_CAL_I2C_DEV5_NAME, 0}, {} };
 
+/*********************************************************
+ * I2C Driver structure for Main
+ *********************************************************/
 #ifdef CONFIG_OF
 static const struct of_device_id EEPROM_HW_i2c_of_ids[] = {
 	{.compatible = "mediatek,camera_main_eeprom",},
@@ -370,6 +441,51 @@ struct i2c_driver EEPROM_HW_i2c_driver3 = {
 	.id_table = EEPROM_HW_i2c_id3,
 };
 
+/**********************************************************
+ * I2C Driver structure for Sub2
+ **********************************************************/
+#ifdef CONFIG_OF
+static const struct of_device_id EEPROM_HW4_i2c_driver_of_ids[] = {
+	{.compatible = "mediatek,camera_sub_two_eeprom",},
+	{}
+};
+#endif
+
+struct i2c_driver EEPROM_HW_i2c_driver4 = {
+	.probe = EEPROM_HW_i2c_probe4,
+	.remove = EEPROM_HW_i2c_remove4,
+	.driver = {
+		   .name = CAM_CAL_I2C_DEV4_NAME,
+		   .owner = THIS_MODULE,
+#ifdef CONFIG_OF
+		   .of_match_table = EEPROM_HW4_i2c_driver_of_ids,
+#endif
+		   },
+	.id_table = EEPROM_HW_i2c_id4,
+};
+
+/**********************************************************
+ * I2C Driver structure for Main3
+ **********************************************************/
+#ifdef CONFIG_OF
+static const struct of_device_id EEPROM_HW5_i2c_driver_of_ids[] = {
+	{.compatible = "mediatek,camera_main_three_eeprom",},
+	{}
+};
+#endif
+
+struct i2c_driver EEPROM_HW_i2c_driver5 = {
+	.probe = EEPROM_HW_i2c_probe5,
+	.remove = EEPROM_HW_i2c_remove5,
+	.driver = {
+		   .name = CAM_CAL_I2C_DEV5_NAME,
+		   .owner = THIS_MODULE,
+#ifdef CONFIG_OF
+		   .of_match_table = EEPROM_HW5_i2c_driver_of_ids,
+#endif
+		   },
+	.id_table = EEPROM_HW_i2c_id5,
+};
 
 /*******************************************************
  * EEPROM_HW_probe
@@ -378,6 +494,8 @@ static int EEPROM_HW_probe(struct platform_device *pdev)
 {
 	i2c_add_driver(&EEPROM_HW_i2c_driver2);
 	i2c_add_driver(&EEPROM_HW_i2c_driver3);
+	i2c_add_driver(&EEPROM_HW_i2c_driver4);
+	i2c_add_driver(&EEPROM_HW_i2c_driver5);
 	return i2c_add_driver(&EEPROM_HW_i2c_driver);
 }
 
@@ -389,6 +507,8 @@ static int EEPROM_HW_remove(struct platform_device *pdev)
 	i2c_del_driver(&EEPROM_HW_i2c_driver);
 	i2c_del_driver(&EEPROM_HW_i2c_driver2);
 	i2c_del_driver(&EEPROM_HW_i2c_driver3);
+	i2c_del_driver(&EEPROM_HW_i2c_driver4);
+	i2c_del_driver(&EEPROM_HW_i2c_driver5);
 	return 0;
 }
 
@@ -671,7 +791,7 @@ static long EEPROM_drv_ioctl(struct file *file,
 		do_gettimeofday(&ktv1);
 #endif
 
-		pr_debug("SensorID=%x DeviceID=%x\n",
+		pr_debug("SensorID=%x DeviceID=0x%x\n",
 			ptempbuf->sensorID, ptempbuf->deviceID);
 		pcmdInf = EEPROM_get_cmd_info_ex(
 			ptempbuf->sensorID,

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -19,6 +20,8 @@ enum EEPROM_I2C_DEV_IDX {
 	I2C_DEV_IDX_1 = 0,
 	I2C_DEV_IDX_2,
 	I2C_DEV_IDX_3,
+	I2C_DEV_IDX_4,
+	I2C_DEV_IDX_5,
 	I2C_DEV_IDX_MAX
 };
 
