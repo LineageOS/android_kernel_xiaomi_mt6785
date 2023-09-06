@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -96,6 +97,8 @@ static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	 BU24253AF_Release, BU24253AF_GetFileName, NULL},
 	{1, AFDRV_GT9772AF, GT9772AF_SetI2Cclient, GT9772AF_Ioctl,
 	 GT9772AF_Release, GT9772AF_GetFileName, NULL},
+	{1, AFDRV_DW9714AF, DW9714AF_SetI2Cclient, DW9714AF_Ioctl,
+	 DW9714AF_Release, DW9714AF_GetFileName, NULL},
 
 
 };
@@ -716,6 +719,13 @@ static int AF_resume(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_OF
+static const struct of_device_id gmainaf_of_device_id[] = {
+	{.compatible = "mediatek,camera3_af_lens",},
+	{}
+};
+#endif
+
 /* platform structure */
 static struct platform_driver g_stAF_Driver = {
 	.probe = AF_probe,
@@ -723,7 +733,11 @@ static struct platform_driver g_stAF_Driver = {
 	.suspend = AF_suspend,
 	.resume = AF_resume,
 	.driver = {
-		.name = PLATFORM_DRIVER_NAME, .owner = THIS_MODULE,
+		.name = PLATFORM_DRIVER_NAME,
+		.owner = THIS_MODULE,
+#ifdef CONFIG_OF
+		.of_match_table = gmainaf_of_device_id,
+#endif
 	} };
 
 static struct platform_device g_stAF_device = {
