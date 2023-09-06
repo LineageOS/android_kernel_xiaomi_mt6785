@@ -109,7 +109,6 @@ struct mt6370_pmu_charger_data {
 	struct mutex hidden_mode_lock;
 	struct mutex ieoc_lock;
 	struct mutex tchg_lock;
-	struct mutex pp_lock;
 	struct device *dev;
 	struct power_supply *psy;
 	wait_queue_head_t wait_queue;
@@ -136,8 +135,6 @@ struct mt6370_pmu_charger_data {
 	struct work_struct chgdet_work;
 #endif /* CONFIG_TCPC_CLASS */
 	struct delayed_work mivr_dwork;
-
-	bool pp_en;
 };
 
 /* These default values will be used if there's no property in dts */
@@ -1908,43 +1905,36 @@ static int mt6370_enable_power_path(struct charger_device *chg_dev, bool en)
 	int ret = 0;
 	struct mt6370_pmu_charger_data *chg_data =
 		dev_get_drvdata(&chg_dev->dev);
+	u32 mivr = en ? chg_data->mivr : MT6370_MIVR_MAX;
 
-	mutex_lock(&chg_data->pp_lock);
+	dev_info(chg_data->dev, "%s: en = %d\n", __func__, en);
 
-	dev_info(chg_data->dev, "%s: en = %d, pp_en = %d\n",
-				__func__, en, chg_data->pp_en);
-	if (en == chg_data->pp_en)
-		goto out;
-
-	ret = (en ? mt6370_pmu_reg_clr_bit : mt6370_pmu_reg_set_bit)
-		(chg_data->chip, MT6370_PMU_REG_CHGCTRL1,
-		 MT6370_MASK_FORCE_SLEEP);
 	/*
 	 * enable power path -> unmask mivr irq
 	 * mask mivr irq -> disable power path
 	 */
 	if (!en)
 		mt6370_enable_irq(chg_data, "chg_mivr", false);
-	ret = __mt6370_set_mivr(chg_data, en ? chg_data->mivr :
-					       MT6370_MIVR_MAX);
+
+	ret = __mt6370_set_mivr(chg_data, mivr);
+
 	if (en)
 		mt6370_enable_irq(chg_data, "chg_mivr", true);
-	chg_data->pp_en = en;
-out:
-	mutex_unlock(&chg_data->pp_lock);
+
 	return ret;
 }
 
 static int mt6370_is_power_path_enable(struct charger_device *chg_dev, bool *en)
 {
+	int ret = 0;
 	struct mt6370_pmu_charger_data *chg_data =
 		dev_get_drvdata(&chg_dev->dev);
+	u32 mivr = 0;
 
-	mutex_lock(&chg_data->pp_lock);
-	*en = chg_data->pp_en;
-	mutex_unlock(&chg_data->pp_lock);
+	ret = __mt6370_get_mivr(chg_data, &mivr);
+	*en = (mivr == MT6370_MIVR_MAX ? false : true);
 
-	return 0;
+	return ret;
 }
 
 static int mt6370_get_ichg(struct charger_device *chg_dev, u32 *ichg)
@@ -2045,20 +2035,18 @@ static int mt6370_set_mivr(struct charger_device *chg_dev, u32 uV)
 	int ret = 0;
 	struct mt6370_pmu_charger_data *chg_data =
 		dev_get_drvdata(&chg_dev->dev);
+	bool en = true;
 
-	mutex_lock(&chg_data->pp_lock);
-
-	if (!chg_data->pp_en) {
+	ret = mt6370_is_power_path_enable(chg_dev, &en);
+	if (!en) {
 		dev_err(chg_data->dev, "%s: power path is disabled\n",
 			__func__);
-		goto out;
+		return -EINVAL;
 	}
 
 	ret = __mt6370_set_mivr(chg_data, uV);
-out:
 	if (ret >= 0)
 		chg_data->mivr = uV;
-	mutex_unlock(&chg_data->pp_lock);
 	return ret;
 }
 
@@ -2323,6 +2311,10 @@ static int mt6370_set_pep20_reset(struct charger_device *chg_dev)
 		dev_get_drvdata(&chg_dev->dev);
 
 	mutex_lock(&chg_data->pe_access_lock);
+	ret = mt6370_set_mivr(chg_dev, chg_data->mivr);
+	if (ret < 0)
+		goto out;
+
 	/* disable skip mode */
 	mt6370_enable_hidden_mode(chg_data, true);
 
@@ -4096,7 +4088,6 @@ static int mt6370_pmu_charger_probe(struct platform_device *pdev)
 	mutex_init(&chg_data->hidden_mode_lock);
 	mutex_init(&chg_data->ieoc_lock);
 	mutex_init(&chg_data->tchg_lock);
-	mutex_init(&chg_data->pp_lock);
 	chg_data->chip = dev_get_drvdata(pdev->dev.parent);
 	chg_data->dev = &pdev->dev;
 	chg_data->chg_type = CHARGER_UNKNOWN;
@@ -4113,7 +4104,6 @@ static int mt6370_pmu_charger_probe(struct platform_device *pdev)
 #ifdef CONFIG_TCPC_CLASS
 	atomic_set(&chg_data->tcpc_usb_connected, 0);
 #endif
-	chg_data->pp_en = true;
 
 	if (use_dt) {
 		ret = mt_parse_dt(&pdev->dev, chg_data);
@@ -4199,7 +4189,6 @@ err_chg_init_setting:
 	mutex_destroy(&chg_data->hidden_mode_lock);
 	mutex_destroy(&chg_data->ieoc_lock);
 	mutex_destroy(&chg_data->tchg_lock);
-	mutex_destroy(&chg_data->pp_lock);
 	return ret;
 }
 
@@ -4220,7 +4209,6 @@ static int mt6370_pmu_charger_remove(struct platform_device *pdev)
 		mutex_destroy(&chg_data->hidden_mode_lock);
 		mutex_destroy(&chg_data->ieoc_lock);
 		mutex_destroy(&chg_data->tchg_lock);
-		mutex_destroy(&chg_data->pp_lock);
 		dev_info(chg_data->dev, "%s successfully\n", __func__);
 	}
 

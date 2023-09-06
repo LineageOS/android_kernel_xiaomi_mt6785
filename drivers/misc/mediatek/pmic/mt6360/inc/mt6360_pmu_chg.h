@@ -26,6 +26,7 @@ struct mt6360_chg_platform_data {
 	u32 mivr;
 	u32 cv;
 	u32 ieoc;
+	u32 vrechg;
 	u32 safety_timer;
 	u32 ircmp_resistor;
 	u32 ircmp_vclamp;
@@ -53,6 +54,7 @@ struct mt6360_chg_platform_data {
 #define MT6360_MASK_SHIP_MODE	BIT(7)
 #define MT6360_MASK_IINLMTSEL	(0x0C)
 #define MT6360_SHFT_IINLMTSEL	(2)
+#define MT6360_MASK_BYPASS_MODE	BIT(5)
 #define MT6360_MASK_TE_EN	BIT(4)
 #define MT6360_SHFT_TE_EN	(4)
 #define MT6360_MASK_CFO_EN	BIT(1)
