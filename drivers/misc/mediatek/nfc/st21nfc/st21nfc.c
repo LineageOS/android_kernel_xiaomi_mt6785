@@ -2,6 +2,7 @@
 /*
  * NFC Controller Driver
  * Copyright (C) 2020 ST Microelectronics S.A.
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (C) 2010 Stollmann E+V GmbH
  * Copyright (C) 2010 Trusted Logic S.A.
  */
@@ -41,6 +42,7 @@
 #include <linux/of_irq.h>
 #include "st21nfc.h"
 
+#include <linux/board_id.h>
 
 // Kernel 4.9 on some platforms is using legacy drivers (kernel-4.9-lc)
 // I2C: CONFIG_MACH_MT6735 / 6735M / 6753 / 6580 / 6755 use legacy driver
@@ -1363,13 +1365,25 @@ static struct platform_driver st21nfc_platform_driver = {
 /* module load/unload record keeping */
 static int __init st21nfc_dev_init(void)
 {
+	int project_number;
 	pr_info("Loading st21nfc driver\n");
+	//get hwversion number
+	project_number = board_id_get_hwversion_product_num();
+	//rosemary project_number is 2
+
 #ifndef KRNMTKLEGACY_GPIO
 	platform_driver_register(&st21nfc_platform_driver);
 	if (enable_debug_log)
 		pr_debug("Loading st21nfc i2c driver\n");
 #endif
-	return i2c_add_driver(&st21nfc_driver);
+
+	if (project_number == 2) {
+		pr_info("%s: support NFC\n", __func__);
+		return i2c_add_driver(&st21nfc_driver);
+	} else {
+		pr_err("%s: not supports NFC\n", __func__);
+		return -ENODEV;
+	}
 }
 
 module_init(st21nfc_dev_init);
