@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -49,7 +50,9 @@
 
 #include "ddp_clkmgr.h"
 #include "primary_display.h"
-
+#ifdef CONFIG_ADB_WRITE_CMD_FEATURE
+#include "disp_recovery.h"
+#endif
 /*****************************************************************************/
 enum MIPITX_PAD_VALUE {
 	PAD_D2P_V = 0,
@@ -73,6 +76,10 @@ enum MIPITX_PAD_VALUE {
 #define DSI_INREG32(type, addr) INREG32(addr)
 #define DSI_READREG32(type, dst, src) mt_reg_sync_writel(INREG32(src), dst)
 unsigned int test = 1;
+#ifdef CONFIG_ADB_WRITE_CMD_FEATURE
+static  enum DISP_MODULE_ENUM g_module;
+struct LCM_DRIVER *g_lcm_drv;
+#endif
 static int dsi_reg_op_debug;
 #ifdef CONFIG_MTK_MT6382_BDG
 unsigned int data_phy_cycle;
@@ -221,7 +228,9 @@ unsigned int data_lane2[2] = { 0 }; /* MIPITX_DSI_DATA_LANE2 */
 unsigned int data_lane3[2] = { 0 }; /* MIPITX_DSI_DATA_LANE3 */
 
 unsigned int mipitx_impedance_backup[50];
-
+#ifdef CONFIG_ADB_WRITE_CMD_FEATURE
+static struct LCM_UTIL_FUNCS *utils = NULL;
+#endif
 static void backup_mipitx_impedance(void)
 {
 	int i = 0, j = 0, cnt = 0;
@@ -1997,7 +2006,7 @@ void DSI_CPHY_clk_setting(enum DISP_MODULE_ENUM module, struct cmdqRecStruct *cm
 		//MIPITX_OUTREG32(DSI_PHY_REG[i]+MIPITX_IMPENDANCE_2, 0x00001010);
 
 		/*set volate*/
-		MIPITX_OUTREG32(DSI_PHY_REG[i]+MIPITX_VOLTAGE_SEL, 0x4444236A);
+		MIPITX_OUTREG32(DSI_PHY_REG[i]+MIPITX_VOLTAGE_SEL, 0x444423EA);
 
 		/*set lane swap*/
 		if (dsi_params->lane_swap_en) {
@@ -5360,7 +5369,193 @@ static void lcm_mdelay(UINT32 ms)
 	else
 		msleep(ms);
 }
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+struct LCM_setting_table {
+	unsigned int cmd;
+	unsigned char count;
+	unsigned char para_list[64];
+};
 
+struct LCM_mipi_read_write {
+	unsigned int read_enable;
+	unsigned int read_count;
+	unsigned char read_buffer[64];
+	struct LCM_setting_table lcm_setting_table;
+};
+
+static struct LCM_mipi_read_write lcm_mipi_read_write ={0};
+
+static char string_to_hex(const char *str)
+{
+	char val_l = 0;
+	char val_h = 0;
+
+	if (str[0] >= '0' && str[0] <= '9')
+		val_h = str[0] - '0';
+	else if (str[0] <= 'f' && str[0] >= 'a')
+		val_h = 10 + str[0] - 'a';
+	else if (str[0] <= 'F' && str[0] >= 'A')
+		val_h = 10 + str[0] - 'A';
+
+	if (str[1] >= '0' && str[1] <= '9')
+		val_l = str[1]-'0';
+	else if (str[1] <= 'f' && str[1] >= 'a')
+		val_l = 10 + str[1] - 'a';
+	else if (str[1] <= 'F' && str[1] >= 'A')
+		val_l = 10 + str[1] - 'A';
+
+	return (val_h << 4) | val_l;
+}
+
+static int string_merge_into_buf(const char *str, int len, char *buf)
+{
+	int buf_size = 0;
+	int i = 0;
+	const char *p = str;
+
+	while (i < len) {
+		if (((p[0] >= '0' && p[0] <= '9') ||
+			(p[0] <= 'f' && p[0] >= 'a') ||
+			(p[0] <= 'F' && p[0] >= 'A'))
+			&& ((i + 1) < len)) {
+			buf[buf_size] = string_to_hex(p);
+			pr_debug("0x%02x ", buf[buf_size]);
+			buf_size++;
+			i += 2;
+			p += 2;
+		} else {
+			i++;
+			p++;
+		}
+	}
+	return buf_size;
+}
+
+long  lcm_mipi_reg_write(char *buf, unsigned long  count)
+{
+	int retval = 0;
+	int dlen = 0;
+	unsigned int read_enable = 0;
+	unsigned int packet_count = 0;
+	unsigned int register_value = 0;
+	char *input = NULL;
+	char *data = NULL;
+	unsigned char pbuf[3] = {0};
+	unsigned int  i = 0;
+	struct dsi_cmd_desc cmd_tab;
+	struct dsi_cmd_desc lcm_adb_cmd;
+	pr_debug("[%s]: lcm_mipi_reg_write source: count  = %ld,buf = %s ", __func__, count, buf);
+
+	input = buf;
+	memcpy(pbuf, input, 2);
+	pbuf[2] = '\0';
+	retval = kstrtou32(pbuf, 10, &read_enable);
+	if (retval)
+		goto exit;
+	lcm_mipi_read_write.read_enable = !!read_enable;
+	input = input + 3;
+	memcpy(pbuf, input, 2);
+	pbuf[2] = '\0';
+	packet_count = (unsigned int)string_to_hex(pbuf);
+	//pr_debug("[%s]: kxx add for packet_count = %ld,\n ", __func__, packet_count);
+	if (lcm_mipi_read_write.read_enable && !packet_count) {
+		retval = -EINVAL;
+		goto exit;
+	}
+	input = input + 3;
+	memcpy(pbuf, input, 2);
+	pbuf[2] = '\0';
+	register_value = (unsigned int)string_to_hex(pbuf);
+	lcm_mipi_read_write.lcm_setting_table.cmd = register_value;
+
+	if(lcm_mipi_read_write.read_enable) {
+		lcm_mipi_read_write.read_count = packet_count;
+		memset(&cmd_tab, 0, sizeof(struct dsi_cmd_desc));
+		cmd_tab.dtype = lcm_mipi_read_write.lcm_setting_table.cmd;
+		cmd_tab.payload = lcm_mipi_read_write.read_buffer;
+		cmd_tab.dlen = lcm_mipi_read_write.read_count;
+
+		do_lcm_vdo_lp_read(&cmd_tab, 1);
+		pr_debug("read lcm addr:0x%x, len:%d, val:0x%x\n",
+				cmd_tab.dtype, cmd_tab.dlen, *cmd_tab.payload);
+		goto exit;
+	} else {
+		lcm_mipi_read_write.lcm_setting_table.count = (unsigned char)packet_count;
+		memcpy(lcm_mipi_read_write.lcm_setting_table.para_list, "",64);
+		if(count > 11)
+		{
+			data = kzalloc(count - 9, GFP_KERNEL);
+			if (!data) {
+				retval = -ENOMEM;
+				goto exit;
+			}
+		 	data[count-9-1] = '\0';
+			input = input + 3;
+			dlen = string_merge_into_buf(input,count -9,data);
+			memcpy(lcm_mipi_read_write.lcm_setting_table.para_list, data,dlen);
+		}/*
+		if(NULL != utils->dsi_set_cmdq_V22)
+			utils->dsi_set_cmdq_V22(NULL,lcm_mipi_read_write.lcm_setting_table.cmd,lcm_mipi_read_write.lcm_setting_table.count,lcm_mipi_read_write.lcm_setting_table.para_list, 1);
+*/
+/***********************kxx add write*****************************/
+
+
+		lcm_adb_cmd.payload = vmalloc(packet_count * sizeof(unsigned char));
+		lcm_adb_cmd.vc = 0;
+		lcm_adb_cmd.dlen = packet_count;
+		lcm_adb_cmd.link_state = 1;
+		lcm_adb_cmd.dtype = lcm_mipi_read_write.lcm_setting_table.cmd;
+		//lcm_cmd.payload[0] = 0x07;
+		//lcm_cmd.payload[1] = 0xFF;
+		for(i=0;i<lcm_mipi_read_write.lcm_setting_table.count;i++)
+		{
+			lcm_adb_cmd.payload[i] = lcm_mipi_read_write.lcm_setting_table.para_list[i];
+		}
+		do_lcm_vdo_lp_write_without_lock(&lcm_adb_cmd,1);
+
+		vfree(lcm_adb_cmd.payload);
+
+/**********************kxx add write*********************************/
+	}
+
+	pr_debug("[%s]: mipi_write done!\n", __func__);
+	pr_debug("[%s]: write cmd = %d,len = %d\n", __func__,lcm_mipi_read_write.lcm_setting_table.cmd,lcm_mipi_read_write.lcm_setting_table.count);
+	pr_debug("[%s]: mipi_write data: ", __func__);
+	for(i=0;i<lcm_mipi_read_write.lcm_setting_table.count;i++)
+	{
+		pr_debug("0x%x ", lcm_mipi_read_write.lcm_setting_table.para_list[i]);
+	}
+	pr_debug("\n ");
+
+	if(count > 11)
+	{
+		kfree(data);
+	}
+exit:
+	retval = count;
+	return retval;
+}
+
+long  lcm_mipi_reg_read(char *buf)
+{
+	int i = 0;
+	ssize_t count = 0;
+
+	if (lcm_mipi_read_write.read_enable) {
+		for (i = 0; i < lcm_mipi_read_write.read_count; i++) {
+			if (i ==  lcm_mipi_read_write.read_count - 1) {
+				count += snprintf(buf + count, PAGE_SIZE - count, "0x%02x\n",
+				     lcm_mipi_read_write.read_buffer[i]);
+			} else {
+				count += snprintf(buf + count, PAGE_SIZE - count, "0x%02x ",
+				     lcm_mipi_read_write.read_buffer[i]);
+			}
+		}
+	}
+	return count;
+}
+
+#endif
 void DSI_set_cmdq_V11_wrapper_DSI0(void *cmdq, unsigned int *pdata,
 			unsigned int queue_size, unsigned char force_update)
 {
@@ -5477,7 +5672,7 @@ unsigned int DSI_dcs_read_lcm_reg_v2_wrapper_DSIDUAL(UINT8 cmd, UINT8 *buffer,
 long lcd_enp_bias_setting(unsigned int value)
 {
 	long ret = 0;
-#ifndef CONFIG_FPGA_EARLY_PORTING
+#if 0
 	if (value) { /* power on gate power ic */
 		ret |=
 		    disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP1);
@@ -5505,13 +5700,17 @@ long lcd_enp_bias_setting(unsigned int value)
 int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 			  struct LCM_DRIVER *lcm_drv)
 {
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+#else
 	struct LCM_UTIL_FUNCS *utils = NULL;
-
+#endif
 	if (lcm_drv == NULL) {
 		DISP_PR_ERR("lcm_drv is null\n");
 		return -1;
 	}
-
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+	g_lcm_drv = lcm_drv;
+#endif
 	if (module == DISP_MODULE_DSI0) {
 		utils = (struct LCM_UTIL_FUNCS *)&lcm_utils_dsi0;
 	} else if (module == DISP_MODULE_DSI1) {
@@ -5522,7 +5721,9 @@ int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 		DISP_PR_INFO("wrong module: %d\n", module);
 		return -1;
 	}
-
+#ifdef CONFIG_ADB_WRITE_CMD_FEATURE
+	g_module =	module;
+#endif
 	utils->set_reset_pin = lcm_set_reset_pin;
 	utils->udelay = lcm_udelay;
 	utils->mdelay = lcm_mdelay;

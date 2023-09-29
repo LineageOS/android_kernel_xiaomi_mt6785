@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -70,15 +71,10 @@ int disp_lcm_is_partial_support(struct disp_lcm_handle *plcm);
 int disp_lcm_validate_roi(struct disp_lcm_handle *plcm, int *x, int *y,
 			  int *w, int *h);
 int disp_lcm_aod(struct disp_lcm_handle *plcm, int enter);
-
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+int disp_lcm_set_param(struct disp_lcm_handle *plcm, unsigned int param);
+#endif
 int disp_lcm_is_arr_support(struct disp_lcm_handle *plcm);
-
-/*hbm*/
-int disp_lcm_set_hbm(bool en, struct disp_lcm_handle *plcm, void *qhandle);
-int disp_lcm_get_hbm_state(struct disp_lcm_handle *plcm);
-int disp_lcm_get_hbm_wait(struct disp_lcm_handle *plcm);
-int disp_lcm_set_hbm_wait(bool wait, struct disp_lcm_handle *plcm);
-unsigned int disp_lcm_get_hbm_time(bool en, struct disp_lcm_handle *plcm);
 
 #ifdef CONFIG_MTK_HIGH_FRAME_RATE
 /*-----------------------DynFPS start-----------------------------------*/

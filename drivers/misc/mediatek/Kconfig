@@ -13,6 +13,24 @@ config MTK_PLATFORM
 config ARCH_MTK_PROJECT
 	string "MTK project name"
 
+config BACKLIGHT_SUPPORT_2047_FEATURE
+        bool "enable backlight level 2047"
+        default n
+        help
+          If unsure, set N.
+
+config ADB_WRITE_CMD_FEATURE
+        bool "enable adb write cmd feature"
+        default n
+        help
+          If unsure, set N.
+          
+config ADB_WRITE_PARAM_FEATURE
+        bool "enable adb write param feature"
+        default n
+        help
+          If unsure, set N.
+
 config FPGA_EARLY_PORTING
 	bool "MTK FPGA EARLY PORTING"
 	help

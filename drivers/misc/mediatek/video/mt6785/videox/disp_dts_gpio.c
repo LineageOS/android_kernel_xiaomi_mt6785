@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -28,6 +29,10 @@ static const char *this_state_name[DTS_GPIO_STATE_MAX] = {
 	"lcd_bias_enn0_gpio",
 	"lcm_rst_out1_gpio",
 	"lcm_rst_out0_gpio",
+	"lcd_ldo18_out1_gpio",
+	"lcd_ldo18_out0_gpio",
+	"lcm_ldo3_out1_gpio",
+	"lcm_ldo3_out0_gpio",
 	"tp_rst_out1_gpio",
 	"tp_rst_out0_gpio",
 	"mode_te_gpio",

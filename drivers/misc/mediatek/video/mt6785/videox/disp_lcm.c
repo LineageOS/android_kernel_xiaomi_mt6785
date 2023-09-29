@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -21,10 +22,23 @@
 #include "ddp_manager.h"
 #include "disp_lcm.h"
 #include "primary_display.h"
-
+#include "disp_feature.h"
 #if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
 #include <linux/of.h>
 #endif
+#include <linux/delay.h>
+
+/* 2020.12.08 longcheer add for display feature start */
+extern void DSI_set_cmdq_V2_Wrapper_DSI0(unsigned int cmd, unsigned char count,
+	unsigned char *para_list, unsigned char force_update);
+extern int do_lcm_vdo_lp_write(struct dsi_cmd_desc *write_table,unsigned int count);
+
+extern int do_lcm_vdo_lp_read(struct dsi_cmd_desc *cmd_tab, unsigned int count);
+struct LCM_setting_table *hbm0_off,*hbm1_on,*hbm2_on;
+extern char mtkfb_lcm_name[256];
+extern unsigned int islcmconnected;
+
+/* 2020.12.08 longcheer add for display feature end */
 
 /* This macro and arrya is designed for multiple LCM support */
 /* for multiple LCM, we should assign I/F Port id in lcm driver, */
@@ -1022,6 +1036,102 @@ void load_lcm_resources_from_DT(struct LCM_DRIVER *lcm_drv)
 }
 #endif /* MTK_LCM_DEVICE_TREE_SUPPORT */
 
+/* 2020.12.09 longcheer add for display feature start */
+static void diff_panel_set_cmd(struct disp_lcm_handle *plcm)
+{
+	if (_is_lcm_inited(plcm)) {
+		if(strnstr(plcm->drv->name,"ft3418",strlen(plcm->drv->name))){
+			hbm0_off = sanxing_hbm0_off;
+			hbm1_on = sanxing_hbm1_on;
+			hbm2_on = sanxing_hbm2_on;
+		}
+	}
+
+}
+
+static void display_feature_push_table(struct LCM_setting_table *table,
+		unsigned int count,
+		unsigned char force_update)
+{
+	unsigned int i;
+	unsigned int cmd;
+
+	for (i = 0; i < count; i++) {
+		cmd = table[i].cmd;
+		DSI_set_cmdq_V2_Wrapper_DSI0(cmd, table[i].count,
+				table[i].para_list, force_update);
+	}
+}
+/* 2020.12.09 longcheer add for display feature end */
+
+//2020.12.09 longcheer add for hbm start
+static ssize_t dsi_display_set_hbm(struct device *dev,struct device_attribute *attr,const char *buf,size_t len)
+{
+
+	int rc = 0;
+	int param = 0;
+	struct dsi_cmd_desc dimming_on[1];
+	struct dsi_cmd_desc dimming_off[1];
+	dimming_on[0].payload = vmalloc(sizeof(unsigned char));
+	dimming_on[0].vc = 0;
+	dimming_on[0].dlen = 1;
+	dimming_on[0].link_state = 1;
+	dimming_on[0].dtype = 0x53;
+	*(dimming_on[0].payload) = 0xE8;
+	do_lcm_vdo_lp_write(dimming_on,1);
+
+	rc = kstrtoint(buf, 10, &param);
+	if (rc) {
+		pr_err("kstrtoint failed. rc=%d\n", rc);
+		return rc;
+	}
+	pr_info("xinj:_###_%s,set_hbm_cmd: %d\n",__func__, param);
+	switch(param) {
+		case 0x1: //hbm1 on
+			display_feature_push_table(hbm1_on,1,1);
+			break;
+		case 0x2: //hbm2 on
+			display_feature_push_table(hbm2_on,1,1);
+			break;
+		case 0x0://hbm off
+			dimming_off[0].payload = vmalloc(sizeof(unsigned char));
+			dimming_off[0].vc = 0;
+			dimming_off[0].dlen = 1;
+			dimming_off[0].link_state = 1;
+			dimming_off[0].dtype = 0x53;
+			*(dimming_off[0].payload) = 0x28;
+			do_lcm_vdo_lp_write(dimming_off,1);
+			display_feature_push_table(hbm0_off,1,1);
+			break;
+		default:
+			pr_err("unknow cmds: %d\n", param);
+			break;
+	}
+	return len;
+}
+
+static DEVICE_ATTR(hbm_mode, 0644, NULL,dsi_display_set_hbm );
+static struct kobject *dsi_display_hbm;
+static int display_feature_create_sysfs(void)
+{
+   int ret;
+
+   dsi_display_hbm = kobject_create_and_add("display_hbm", NULL);
+   if(dsi_display_hbm == NULL) {
+     pr_info(" temp_create_sysfs_ failed\n");
+     ret=-ENOMEM;
+     return ret;
+   }
+   pr_info(" temp_create_sysfs_ success \n");
+   ret=sysfs_create_file(dsi_display_hbm, &dev_attr_hbm_mode.attr);
+   if(ret) {
+    pr_info("%s failed \n", __func__);
+    kobject_del(dsi_display_hbm);
+   }
+   pr_info("%s success \n", __func__);
+   return 0;
+}
+//2020.12.09 longcheer add for hbm end
 struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 	enum LCM_INTERFACE_ID lcm_id, int is_lcm_inited)
 {
@@ -1146,6 +1256,8 @@ struct disp_lcm_handle *disp_lcm_probe(char *plcm_name,
 		load_lcm_resources_from_DT(plcm->drv);
 #endif
 
+	diff_panel_set_cmd(plcm);
+	display_feature_create_sysfs();
 	plcm->drv->get_params(plcm->params);
 	plcm->lcm_if_id = plcm->params->lcm_if;
 
@@ -1893,101 +2005,30 @@ done:
 
 /*-------------------DynFPS end-----------------------------*/
 #endif
-
-/*-------------------HBM start-----------------------------*/
-int disp_lcm_get_hbm_state(struct disp_lcm_handle *plcm)
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+int disp_lcm_set_param(struct disp_lcm_handle *plcm, unsigned int param)
 {
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
+	/*DISPFUNC(); */
+	struct LCM_DRIVER *lcm_drv = NULL;
+	int ret = 0;
 
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
+	DISPFUNC();
+
+	if (_is_lcm_inited(plcm)) {
+		lcm_drv = plcm->drv;
+		if (lcm_drv->set_disp_param) {
+			lcm_drv->set_disp_param(param);
+			ret = 0;
+		} else {
+			DISP_PR_ERR("FATAL ERROR, lcm_drv->set_backlight is null\n");
+			ret = -1;
+		}
+	} else {
+		DISP_PR_ERR("lcm_drv is null\n");
+		ret = -1;
 	}
 
-	if (!plcm->drv->get_hbm_state) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->get_hbm_state is null\n");
-		return -1;
-	}
-
-	return plcm->drv->get_hbm_state();
+	return ret;
 }
-
-int disp_lcm_get_hbm_wait(struct disp_lcm_handle *plcm)
-{
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (!plcm->drv->get_hbm_wait) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->get_hbm_wait is null\n");
-		return -1;
-	}
-
-	return plcm->drv->get_hbm_wait();
-}
-
-int disp_lcm_set_hbm_wait(bool wait, struct disp_lcm_handle *plcm)
-{
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (!plcm->drv->set_hbm_wait) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->set_hbm_wait is null\n");
-		return -1;
-	}
-
-	plcm->drv->set_hbm_wait(wait);
-	return 0;
-}
-
-int disp_lcm_set_hbm(bool en, struct disp_lcm_handle *plcm, void *qhandle)
-{
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (!plcm->drv->set_hbm_cmdq) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->set_hbm_cmdq is null\n");
-		return -1;
-	}
-
-	plcm->drv->set_hbm_cmdq(en, qhandle);
-
-	return 0;
-}
-
-unsigned int disp_lcm_get_hbm_time(bool en, struct disp_lcm_handle *plcm)
-{
-	unsigned int time = 0;
-
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (en)
-		time = plcm->params->hbm_en_time;
-	else
-		time = plcm->params->hbm_dis_time;
-
-	return time;
-}
-/*-------------------HBM End-----------------------------*/
+#endif
 

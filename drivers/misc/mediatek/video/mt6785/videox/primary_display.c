@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -106,6 +107,9 @@
 #include "mtk_ovl.h"
 #include "ddp_ovl_wcg.h"
 #include "disp_tphint.h"
+#include <linux/notifier.h>
+#include <linux/fb_notifier.h>
+
 
 #ifdef CONFIG_MTK_MT6382_BDG
 #include "ddp_disp_bdg.h"
@@ -167,6 +171,35 @@ static ktime_t cmd_mode_update_timer_period;
 #endif
 static int is_fake_timer_inited;
 
+//start add for k7b
+static BLOCKING_NOTIFIER_HEAD(fb_drm_notifier_list);
+struct fb_drm_notify_data g_notify_data;
+int fb_drm_register_client(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_register(&fb_drm_notifier_list, nb);
+}
+EXPORT_SYMBOL_GPL(fb_drm_register_client);
+
+/**
+ *	fb_unregister_client - unregister a client notifier
+ *	@nb: notifier block to callback on events
+ */
+int fb_drm_unregister_client(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_unregister(&fb_drm_notifier_list, nb);
+}
+EXPORT_SYMBOL_GPL(fb_drm_unregister_client);
+
+/**
+ * fb_notifier_call_chain - notify clients of fb_events
+ *
+ */
+int fb_drm_notifier_call_chain(unsigned long val, void *v)
+{
+	return blocking_notifier_call_chain(&fb_drm_notifier_list, val, v);
+}
+EXPORT_SYMBOL_GPL(fb_drm_notifier_call_chain);
+//end 
 static struct task_struct *primary_display_switch_dst_mode_task;
 static struct task_struct *present_fence_release_worker_task;
 static struct task_struct *primary_path_aal_task;
@@ -213,8 +246,6 @@ static int dvfs_last_ovl_req = HRT_LEVEL_NUM - 1;
 /* delayed trigger */
 static atomic_t delayed_trigger_kick = ATOMIC_INIT(0);
 static atomic_t od_trigger_kick = ATOMIC_INIT(0);
-
-unsigned long long last_te_time;
 
 unsigned int round_corner_offset_enable;
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
@@ -1165,9 +1196,6 @@ int lcm_fps_ctx_update(struct lcm_fps_ctx_t *fps_ctx, unsigned long long cur_ns)
 	if (!fps_ctx->is_inited)
 		lcm_fps_ctx_init(fps_ctx);
 
-
-	if (cur_ns != 0 && !fps_ctx->dsi_mode)
-		last_te_time = cur_ns;
 	delta = cur_ns - fps_ctx->last_ns;
 	if (delta == 0 || fps_ctx->last_ns == 0) {
 		fps_ctx->last_ns = cur_ns;
@@ -1275,12 +1303,11 @@ int primary_display_get_debug_state(char *stringbuf, int buf_len)
 
 	if (lcm_param && lcm_drv)
 		len += scnprintf(stringbuf + len, buf_len - len,
-			"|LCM Driver=[%s], Resolution=%dx%d, Interface:%s, LCM Connected:%s, color_mode=%s,HBM=%d\n",
+			"|LCM Driver=[%s], Resolution=%dx%d, Interface:%s, LCM Connected:%s, color_mode=%s\n",
 			lcm_drv->name, lcm_param->width, lcm_param->height,
 			(lcm_param->type == LCM_TYPE_DSI) ? "DSI" : "Other",
 			islcmconnected ? "Y" : "N",
-			lcm_color_mode_str(lcm_param->lcm_color_mode),
-			disp_lcm_get_hbm_state(pgc->plcm));
+			lcm_color_mode_str(lcm_param->lcm_color_mode));
 	len += scnprintf(stringbuf + len, buf_len - len,
 		"|State=%s\tlcm_fps=%d\tmax_layer=%d\tmode:%s\tvsync_drop=%d\n",
 		pgc->state == DISP_ALIVE ? "Alive" : "Sleep", pgc->lcm_fps,
@@ -5139,7 +5166,13 @@ int primary_display_suspend(void)
 	unsigned long long bandwidth;
 #endif
 	int active_cfg = 0;
+	int event = FB_DRM_BLANK_POWERDOWN;
+	g_notify_data.data = &event;
 
+	//START tp fb suspend
+	printk("-----FTS----primary_display_suspend_early");
+	fb_drm_notifier_call_chain(FB_DRM_EVENT_BLANK, &g_notify_data);
+	
 	DISPCHECK("%s begin\n", __func__);
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_suspend,
 			 MMPROFILE_FLAG_START, 0, 0);
@@ -5334,11 +5367,15 @@ done:
 	aee_kernel_wdt_kick_Powkey_api("mtkfb_early_suspend",
 				       WDT_SETBY_Display);
 #endif
+	printk("-----FTS----primary_display_suspend");
+	fb_drm_notifier_call_chain(FB_DRM_EARLY_EVENT_BLANK, &g_notify_data);
 	primary_trigger_cnt = 0;
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_suspend,
 			 MMPROFILE_FLAG_END, 0, 0);
 	DISPCHECK("%s end\n", __func__);
 	ddp_clk_check();
+	
+	
 	return ret;
 }
 
@@ -5482,7 +5519,14 @@ int primary_display_resume(void)
 	unsigned int in_fps = 60;
 	unsigned int out_fps = 60;
 #endif
+	
+	int event = FB_DRM_BLANK_UNBLANK;
+	g_notify_data.data = &event;
 
+	//START tp fb suspend
+	printk("-----FTS----primary_display_resume_early");
+	fb_drm_notifier_call_chain(FB_DRM_EARLY_EVENT_BLANK, &g_notify_data);
+	printk("---FTS---mt6785");
 	DISPCHECK("%s begin\n", __func__);
 	DISPFUNCSTART();
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_resume,
@@ -5886,6 +5930,9 @@ done:
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_resume,
 			 MMPROFILE_FLAG_END, 0, 0);
 	ddp_clk_check();
+
+	printk("-----FTS----primary_display_resume");
+	fb_drm_notifier_call_chain(FB_DRM_EVENT_BLANK, &g_notify_data);
 
 	disp_tphint_reset_status();
 
@@ -7388,12 +7435,10 @@ static int _config_ovl_input(struct disp_frame_cfg_t *cfg,
 			pconfig->read_dum_reg[i] = 0;
 
 			/* full transparent layer */
-			if (!has_secure_layer(cfg)) {
-				cmdqRecBackupRegisterToSlot(cmdq_handle,
-					pgc->ovl_sbch_info, i,
-					disp_addr_convert
-					(DISP_REG_OVL_SBCH_STS + ovl_base));
-			}
+			cmdqRecBackupRegisterToSlot(cmdq_handle,
+				pgc->ovl_sbch_info, i,
+				disp_addr_convert
+				(DISP_REG_OVL_SBCH_STS + ovl_base));
 		}
 	}
 
@@ -7401,10 +7446,8 @@ static int _config_ovl_input(struct disp_frame_cfg_t *cfg,
 	    !primary_display_is_decouple_mode()) {
 		unsigned long ovl_base = ovl_base_addr(DISP_MODULE_OVL0_2L);
 
-		if (!has_secure_layer(cfg)) {
-			cmdqRecBackupRegisterToSlot(cmdq_handle, pgc->ovl_status_info,
-				0, disp_addr_convert(DISP_REG_OVL_STA + ovl_base));
-		}
+		cmdqRecBackupRegisterToSlot(cmdq_handle, pgc->ovl_status_info,
+			0, disp_addr_convert(DISP_REG_OVL_STA + ovl_base));
 	}
 
 done:
@@ -7699,11 +7742,6 @@ int primary_display_frame_cfg(struct disp_frame_cfg_t *cfg)
 					(current->comm[3] << 0);
 
 		dprec_start(trigger_event, cfg->present_fence_idx, proc_name);
-	}
-
-	if (disp_helper_get_option(DISP_OPT_LCM_HBM)) {
-		primary_display_set_lcm_hbm(cfg->hbm_en, cfg);
-		primary_display_hbm_wait(cfg->hbm_en);
 	}
 
 	primary_display_trigger_nolock(0, NULL, 0);
@@ -8742,135 +8780,6 @@ int _set_backlight_by_cpu(unsigned int level)
 	return ret;
 }
 
-static int _primary_display_set_lcm_hbm(bool en, struct disp_frame_cfg_t *cfg)
-{
-	int ret = 0;
-	struct cmdqRecStruct *qhandle_hbm = NULL;
-
-	ret = cmdqRecCreate(CMDQ_SCENARIO_DISP_ESD_CHECK, &qhandle_hbm);
-	if (ret) {
-		DISPMSG("%s:failed to create cmdq handle\n", __func__);
-		return -1;
-	}
-
-	if (!primary_display_is_video_mode()) {
-		cmdqRecReset(qhandle_hbm);
-		cmdqRecWait(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
-		_cmdq_handle_clear_dirty(qhandle_hbm);
-
-		_cmdq_insert_wait_frame_done_token_mira(qhandle_hbm);
-		primary_display_hbm_delay(en, cfg);
-		disp_lcm_set_hbm(en, pgc->plcm, qhandle_hbm);
-
-		cmdqRecSetEventToken(qhandle_hbm, CMDQ_SYNC_TOKEN_CABC_EOF);
-		_cmdq_flush_config_handle_mira(qhandle_hbm, 1);
-	}
-
-	cmdqRecDestroy(qhandle_hbm);
-	qhandle_hbm = NULL;
-
-	return ret;
-}
-
-/*make hbm setting occurred after ddic's internal vsync*/
-/* meanwhile leave enough time to config.*/
-int primary_display_hbm_delay(bool en, struct disp_frame_cfg_t *cfg)
-{
-	unsigned int fps;
-	int fpslevel;
-	unsigned int vsync_t;
-	unsigned int config_t;
-	unsigned int te_cycle;
-	unsigned long long delta_t;
-
-
-	fpslevel = cfg->active_config;
-	if (fpslevel >= DFPS_LEVELS) {
-		fpslevel = 0;
-		DISPMSG("%s, active_config out of range, use level 0\n", __func__);
-	}
-
-	fps = pgc->plcm->params->dsi.vsync_after_te[fpslevel].fps;
-	te_cycle = 1000000/fps;
-	vsync_t = pgc->plcm->params->dsi.vsync_after_te[fpslevel].trigger_after_te;
-	config_t = te_cycle -
-		pgc->plcm->params->dsi.vsync_after_te[fpslevel].config_expense_time;
-
-	delta_t = (sched_clock() - last_te_time)/1000;
-	if (delta_t > 2*te_cycle) {
-		udelay(te_cycle);
-		delta_t = (sched_clock() - last_te_time)/1000;
-	}
-	delta_t = delta_t%te_cycle;
-
-	if (delta_t < vsync_t || delta_t > config_t)
-		delta_t = te_cycle - delta_t + vsync_t;
-	while (delta_t) {
-		udelay(1);
-		delta_t--;
-	}
-
-	return 0;
-}
-
-int primary_display_set_lcm_hbm(bool en, struct disp_frame_cfg_t *cfg)
-{
-	int state = 0;
-
-	state = disp_lcm_get_hbm_state(pgc->plcm);
-	if (state == -1)
-		return -EINVAL;
-	else if (state == en)
-		return 0;
-
-	if (disp_helper_get_stage() != DISP_HELPER_STAGE_NORMAL) {
-		DISPMSG("%s: skip, stage:%s\n", __func__,
-			disp_helper_stage_spy());
-		return 0;
-	}
-	if (pgc->state == DISP_SLEPT) {
-		DISPMSG("%s: skip, slept\n", __func__);
-		return 0;
-	}
-
-	primary_display_idlemgr_kick(__func__, 0);
-	if (primary_display_cmdq_enabled()) {
-		DISPMSG("set LCM hbm en:%d\n", en);
-		_primary_display_set_lcm_hbm(en, cfg);
-	}
-
-	return 0;
-}
-
-int primary_display_hbm_wait(bool en)
-{
-	int wait = 0;
-	unsigned int wait_count = 0;
-
-	wait = disp_lcm_get_hbm_wait(pgc->plcm);
-	if (wait == -1)
-		return -EINVAL;
-	else if (wait != 1)
-		return 0;
-
-	wait_count = disp_lcm_get_hbm_time(en, pgc->plcm);
-	if (wait_count == -1)
-		return -EINVAL;
-
-	DISPMSG("LCM hbm %s wait %u-TE\n", en ? "enable" : "disable",
-		wait_count);
-
-	while (wait_count) {
-		primary_display_idlemgr_kick(__func__, 0);
-		wait_count--;
-		dpmgr_wait_event_timeout(pgc->dpmgr_handle,
-					 DISP_PATH_EVENT_IF_VSYNC, HZ);
-	}
-
-	disp_lcm_set_hbm_wait(false, pgc->plcm);
-	return 0;
-}
-
 int primary_display_setbacklight_nolock(unsigned int level)
 {
 	static unsigned int last_level;
@@ -9246,7 +9155,6 @@ struct LCM_DRIVER *DISP_GetLcmDrv(void)
 
 	return NULL;
 }
-
 
 int primary_display_capture_framebuffer(unsigned long pbuf)
 {
@@ -11186,5 +11094,40 @@ void _primary_display_fps_change_callback(void)
 #endif
 /*-----------------DynFPS end-------------------------------*/
 #endif
+ #ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+int primary_display_set_panel_param(unsigned int param)
+{
+	int ret = DISP_STATUS_OK;
 
+	DISPFUNC();
+	mmprofile_log_ex(ddp_mmp_get_events()->dsi_wrlcm, MMPROFILE_FLAG_START, 0, 0);
+#ifdef DISP_SWITCH_DST_MODE
+	_primary_path_switch_dst_lock();
+#endif
+	_primary_path_lock(__func__);
+	if (pgc->state == DISP_SLEPT) {
+		DISPCHECK("Sleep State set display parameter invald\n");
+	} else {
+		if (primary_display_cmdq_enabled()) {
+			if (primary_display_is_video_mode()) {
+				mmprofile_log_ex(ddp_mmp_get_events()->dsi_wrlcm,
+					       MMPROFILE_FLAG_PULSE, 0, 7);
+				disp_lcm_set_param(pgc->plcm, param);
+			} else {
+				DISPCHECK("NOT video mode\n");
+				/* _set_backlight_by_cmdq(param); */
+			}
+		} else {
+			DISPCHECK("display cmdq NOT enabled\n");
+			/* _set_backlight_by_cpu(level); */
+		}
+	}
+	_primary_path_unlock(__func__);
+#ifdef DISP_SWITCH_DST_MODE
+	_primary_path_switch_dst_lock();
+#endif
+	mmprofile_log_ex(ddp_mmp_get_events()->dsi_wrlcm, MMPROFILE_FLAG_END, 0, 0);
 
+	return ret;
+}
+#endif

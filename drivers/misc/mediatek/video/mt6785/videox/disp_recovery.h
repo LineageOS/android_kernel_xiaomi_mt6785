@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -36,5 +37,12 @@ int do_lcm_vdo_lp_write(struct dsi_cmd_desc *write_table,
 
 int primary_display_ovl_recovery(void);
 void primary_display_set_recovery_module(enum DISP_MODULE_ENUM module);
-
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+int do_lcm_vdo_lp_read_without_lock(struct dsi_cmd_desc *cmd_tab,
+			unsigned int count);
+int do_lcm_vdo_lp_write_without_lock(struct dsi_cmd_desc *write_table,
+			unsigned int count);
+int do_lcm_vdo_lp_brief_write_without_lock(struct dsi_cmd_desc *write_table,
+			unsigned int count);
+#endif
 #endif /* _DISP_RECOVERY_H_ */

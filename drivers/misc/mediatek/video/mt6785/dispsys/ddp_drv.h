@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -170,7 +171,10 @@ struct disp_iommu_device *disp_get_iommu_dev(void);
 
 /* OD */
 #define DISP_IOCTL_OD_CTL	_IOWR(DISP_IOCTL_MAGIC, 80, struct DISP_OD_CMD)
-
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+/* panel disp setting */
+#define DISP_IOCTL_SET_PANEL_PARAM   _IOW(DISP_IOCTL_MAGIC, 81, struct DISP_PQ_DC_PARAM)
+#endif
 /* OVL */
 #define DISP_IOCTL_OVL_ENABLE_CASCADE	_IOW(DISP_IOCTL_MAGIC, 90, int)
 #define DISP_IOCTL_OVL_DISABLE_CASCADE	_IOW(DISP_IOCTL_MAGIC, 91, int)

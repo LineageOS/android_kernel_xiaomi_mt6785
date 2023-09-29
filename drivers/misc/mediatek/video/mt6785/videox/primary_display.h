@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -555,10 +556,6 @@ int lcm_fps_ctx_reset(struct lcm_fps_ctx_t *fps_ctx);
 int lcm_fps_ctx_update(struct lcm_fps_ctx_t *fps_ctx,
 		unsigned long long cur_ns);
 
-int primary_display_set_lcm_hbm(bool en, struct disp_frame_cfg_t *cfg);
-int primary_display_hbm_wait(bool en);
-int primary_display_hbm_delay(bool en, struct disp_frame_cfg_t *cfg);
-
 #ifdef CONFIG_MTK_HIGH_FRAME_RATE
 /**************function for DynFPS start************************/
 unsigned int primary_display_is_support_DynFPS(void);
@@ -582,5 +579,8 @@ bool primary_display_need_update_hrt_fps(
 #endif
 
 /**************function for DynFPS end************************/
+#endif
+#ifdef CONFIG_ADB_WRITE_PARAM_FEATURE
+int primary_display_set_panel_param(unsigned int param);
 #endif
 #endif
