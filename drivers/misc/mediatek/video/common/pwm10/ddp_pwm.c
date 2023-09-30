@@ -337,7 +337,11 @@ static int disp_pwm_config_init(enum DISP_MODULE_ENUM module,
 	(0x3ff << 16));
 
 	/* 1024 levels */
+#ifdef CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE
+	DISP_REG_MASK(cmdq, reg_base + DISP_PWM_CON_1_OFF, 2047, 0x7ff);
+#else
 	DISP_REG_MASK(cmdq, reg_base + DISP_PWM_CON_1_OFF, 1023, 0x3ff);
+#endif
 	/* We don't init the backlight here until AAL/Android give */
 #endif
 	return 0;
@@ -632,14 +636,23 @@ int disp_pwm_set_backlight_cmdq(enum disp_pwm_id_t id,
 		reg_base = pwm_get_reg_base(id);
 
 		if (level_1024 > 0) {
+#ifdef CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE
+			DISP_REG_MASK(cmdq, reg_base + DISP_PWM_CON_1_OFF,
+				level_1024 << 16, 0x3fff << 16);
+#else
 			DISP_REG_MASK(cmdq, reg_base + DISP_PWM_CON_1_OFF,
 				level_1024 << 16, 0x1fff << 16);
-
+#endif
 			disp_pwm_set_enabled(cmdq, id, 1);
 		} else {
 			/* Avoid to set 0 */
+#ifdef CONFIG_BACKLIGHT_SUPPORT_2047_FEATURE
+			DISP_REG_MASK(cmdq, reg_base + DISP_PWM_CON_1_OFF,
+				1 << 16, 0x3fff << 16);
+#else
 			DISP_REG_MASK(cmdq, reg_base + DISP_PWM_CON_1_OFF,
 				1 << 16, 0x1fff << 16);
+#endif
 			/* To save power */
 			disp_pwm_set_enabled(cmdq, id, 0);
 		}
