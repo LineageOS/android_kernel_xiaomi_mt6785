@@ -158,7 +158,7 @@ char *g_au1TxPwrDefaultSetting[] = {
 	"_G_Scenario;5;2;1;[ALL,,,,,,,,,,,,]",
 #else
 	"_SAR_PwrLevel;1;2;1;[2G4,,,,,,,,,][5G,,,,,,,,,]",
-	"_G_Scenario;1;2;1;[ALL,,,,,,,,,]",
+	"_G_Scenario;1;2;1;[2G4,28,28,24,28,24,,,,][5G,18]",
 	"_G_Scenario;2;2;1;[ALL,,,,,,,,,]",
 	"_G_Scenario;3;2;1;[ALL,,,,,,,,,]",
 	"_G_Scenario;4;2;1;[ALL,,,,,,,,,]",
@@ -501,7 +501,7 @@ struct DOMAIN_INFO_ENTRY arSupportedRegDomains[] = {
 			{81, BAND_2G4, CHNL_SPAN_5, 1, 13, FALSE}
 			,			/* CH_SET_2G4_1_13 */
 
-			{115, BAND_5G, CHNL_SPAN_20, 36, 4, FALSE}
+			{115, BAND_5G, CHNL_SPAN_20, 36, 4, TRUE}
 			,			/* CH_SET_UNII_LOW_36_48 */
 			{118, BAND_5G, CHNL_SPAN_20, 52, 4, TRUE}
 			,			/* CH_SET_UNII_MID_52_64 */
@@ -744,9 +744,9 @@ struct DOMAIN_INFO_ENTRY arSupportedRegDomains[] = {
 		{
 			{81, BAND_2G4, CHNL_SPAN_5, 1, 13, FALSE}
 			,			/* CH_SET_2G4_1_13 */
-			{115, BAND_NULL, 0, 0, 0, FALSE}
-			,			/* CH_SET_UNII_LOW_NA */
-			{118, BAND_NULL, 0, 0, 0, FALSE}
+			{115, BAND_5G, CHNL_SPAN_20, 36, 4, TRUE}
+			,			/* CH_SET_UNII_LOW_36_48 */
+			{118, BAND_5G, CHNL_SPAN_20, 52, 4, TRUE}
 			,			/* CH_SET_UNII_MID_NA */
 			{121, BAND_NULL, 0, 0, 0, FALSE}
 			,			/* CH_SET_UNII_WW_NA */

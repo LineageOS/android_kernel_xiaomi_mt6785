@@ -490,6 +490,11 @@ struct PARAM_CUSTOM_KEY_CFG_STRUCT g_rDefaulteSetting[] = {
 	*   }
 	*/
 	{"AdapScan", "0x0", WLAN_CFG_DEFAULT},
+	{"DropPacketsIPV4Low", "0x200"},
+	{"DropPacketsIPV6Low", "0x2"},
+	{"EdccaTh5gBw20", "0xFFAB"},
+	{"EdccaTh5gBw40", "0xFFAB"},
+	{"EdccaTh5gBw80", "0xFFAB"},
 #if CFG_SUPPORT_IOT_AP_BLACKLIST
 	/*Fill Iot AP blacklist here*/
 #endif
