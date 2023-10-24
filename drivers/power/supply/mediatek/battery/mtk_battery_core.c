@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -52,6 +53,7 @@
 #include <linux/proc_fs.h>
 #include <linux/of_fdt.h>	/*of_dt API*/
 #include <linux/of.h>
+#include <linux/of_platform.h> /*of_find_node_by_name*/
 #include <linux/vmalloc.h>
 #include <linux/math64.h>
 #include <linux/alarmtimer.h>
@@ -81,7 +83,7 @@
 #include "simulator_kernel.h"
 #endif
 
-
+#include <linux/iio/consumer.h>
 
 /* ============================================================ */
 /* global variable */
@@ -595,14 +597,90 @@ bool __attribute__ ((weak)) mt_usb_is_device(void)
 /* ============================================================ */
 /* custom setting */
 /* ============================================================ */
+static int __init early_parse_batt_profile_vendor_id(char *p)
+{
+	pr_info("get battery_id from cmdline : %c\n", *p);
+
+	if (p) {
+		if (!strcmp(p, "0"))
+			gm.battery_id = BATTERY_VENDOR_NVT;
+		else if (!strcmp(p, "1"))
+			gm.battery_id = BATTERY_VENDOR_GY;
+		else if (!strcmp(p, "2"))
+			gm.battery_id = BATTERY_VENDOR_XWD;
+		else
+			gm.battery_id = BATTERY_VENDOR_UNKNOWN;
+
+		pr_err("%s : %d : get battery_id from cmdline success battery_id = %d\n", __func__, __LINE__, gm.battery_id);
+	} else {
+		gm.battery_id = BATTERY_VENDOR_UNKNOWN;
+		pr_err("%s : %d : get battery_id from cmdline falied\n", __func__, __LINE__);
+	}
+
+	return 0;
+}
+__setup("battery_id=", early_parse_batt_profile_vendor_id);
+
+void fgauge_get_profile_id_for_maxim(void)
+{
+	struct power_supply *max_verify_psy;
+	static bool get_battery_id;
+	union power_supply_propval pval = {0, };
+	int rc;
+
+	if (gm.battery_id != BATTERY_VENDOR_UNKNOWN) {
+		pr_err("fgauge_get_profile_id: from cmdline:%d\n",
+				gm.battery_id);
+		return;
+	}
+
+	max_verify_psy = power_supply_get_by_name("batt_verify");
+	if (max_verify_psy != NULL) {
+		rc = power_supply_get_property(max_verify_psy,
+				POWER_SUPPLY_PROP_CHIP_OK, &pval);
+		if (rc < 0)
+			pr_err("fgauge_get_profile_id: get romid error.\n");
+	}
+
+	if (pval.intval == true) {
+		rc = power_supply_get_property(max_verify_psy,
+				POWER_SUPPLY_PROP_PAGE0_DATA, &pval);
+		if (rc < 0) {
+			pr_err("fgauge_get_profile_id: get page0 error.\n");
+		} else {
+			if (pval.arrayval[0] == 'N') {
+				gm.battery_id = BATTERY_VENDOR_NVT;
+				get_battery_id = true;
+			} else if (pval.arrayval[0] == 'C') {
+				gm.battery_id = BATTERY_VENDOR_GY;
+				get_battery_id = true;
+			/*2020.12.29 longcheer jiangshitian edit for P1 bat id/type check start*/
+			} else if (pval.arrayval[0] == 'V') {
+				gm.battery_id = BATTERY_VENDOR_GY;
+				get_battery_id = true;
+			/*2020.12.29 longcheer jiangshitian edit for P1 bat id/type check end*/				
+			} else if (pval.arrayval[0] == 'S') {
+				gm.battery_id = BATTERY_VENDOR_XWD;
+				get_battery_id = true;
+			}
+		}
+	}
+
+	pr_err("%s : %d : kernel_battery_id = %d, get_battery_id = %d\n", __func__, __LINE__, pval.arrayval[0], get_battery_id);
+
+	if (get_battery_id == false)
+		gm.battery_id = TOTAL_BATTERY_NUMBER - 2;
+
+	pr_info("fgauge_get_profile_id: gm.battery_id=%d.\n", gm.battery_id);
+}
 #ifdef MTK_GET_BATTERY_ID_BY_AUXADC
+struct iio_channel *channel;
 void fgauge_get_profile_id(void)
 {
 	int id_volt = 0;
 	int id = 0;
 	int ret = 0;
 	int auxadc_voltage = 0;
-	struct iio_channel *channel;
 	struct device_node *batterty_node;
 	struct platform_device *battery_dev;
 
@@ -637,11 +715,12 @@ void fgauge_get_profile_id(void)
 
 	bm_err("[%s]auxadc_voltage is %d\n", __func__, auxadc_voltage);
 	id_volt = auxadc_voltage * 1500 / 4096;
+	id_volt = id_volt * 1000;
 	bm_err("[%s]battery_id_voltage is %d\n", __func__, id_volt);
 
 	if ((sizeof(g_battery_id_voltage) /
 		sizeof(int)) != TOTAL_BATTERY_NUMBER) {
-		bm_debug("[%s]error! voltage range incorrect!\n",
+		bm_err("[%s]error! voltage range incorrect!\n",
 			__func__);
 		return;
 	}
@@ -655,10 +734,27 @@ void fgauge_get_profile_id(void)
 		}
 	}
 
-	bm_debug("[%s]Battery id (%d)\n",
+	bm_err("[%s]Battery id (%d)\n",
 		__func__,
 		gm.battery_id);
 }
+
+int battery_get_bat_resistance_id(void)
+{
+	int auxadc_voltage;
+	int id_volt;
+
+	if (channel)
+		iio_read_channel_processed(channel, &auxadc_voltage);
+	else
+		bm_err("[%s] no channel to processed\n", __func__);
+
+	id_volt = auxadc_voltage * 1500 / 4096;
+	id_volt = id_volt * 1000;
+
+	return id_volt;
+}
+
 #elif defined(MTK_GET_BATTERY_ID_BY_GPIO)
 void fgauge_get_profile_id(void)
 {
@@ -683,7 +779,10 @@ void fg_custom_init_from_header(void)
 {
 	int i, j;
 
-	fgauge_get_profile_id();
+	if (suppld_maxim)
+		fgauge_get_profile_id_for_maxim();
+	else
+		fgauge_get_profile_id();
 
 	fg_cust_data.versionID1 = FG_DAEMON_CMD_FROM_USER_NUMBER;
 	fg_cust_data.versionID2 = sizeof(fg_cust_data);
@@ -1058,8 +1157,10 @@ void fg_custom_init_from_header(void)
 	if (IS_ENABLED(BAT_NTC_47)) {
 		gm.rbat.type = 47;
 		gm.rbat.rbat_pull_up_r = RBAT_PULL_UP_R;
+	} else if (IS_ENABLED(BAT_NTC_100)) {
+		gm.rbat.type = 100;
+		gm.rbat.rbat_pull_up_r = RBAT_PULL_UP_R;
 	}
-
 }
 
 
@@ -1252,11 +1353,16 @@ void fg_custom_init_from_dts(struct platform_device *dev)
 {
 	struct device_node *np = dev->dev.of_node;
 	unsigned int val;
-	int bat_id, multi_battery, active_table, i, j, ret, column;
+	int bat_id, i, j, ret, column;
+	int multi_battery = 0, active_table = 0;
 	int r_pseudo100_raw = 0, r_pseudo100_col = 0;
 	char node_name[128];
 
-	fgauge_get_profile_id();
+	if (suppld_maxim)
+		fgauge_get_profile_id_for_maxim();
+	else
+		fgauge_get_profile_id();
+
 	bat_id = gm.battery_id;
 
 	bm_err("%s\n", __func__);
@@ -1747,7 +1853,7 @@ void fg_custom_init_from_dts(struct platform_device *dev)
 			bm_err("Get POWERON_SYSTEM_IBOOT failed\n");
 		}
 	}
-
+/*
 	if (active_table == 0 && multi_battery == 0) {
 		fg_read_dts_val(np, "g_FG_PSEUDO100_T0",
 			&(fg_table_cust_data.fg_profile[0].pseudo100),
@@ -1765,7 +1871,7 @@ void fg_custom_init_from_dts(struct platform_device *dev)
 			&(fg_table_cust_data.fg_profile[4].pseudo100),
 			UNIT_TRANS_100);
 	}
-
+*/
 	/* compatiable with old dtsi*/
 	if (active_table == 0) {
 		fg_read_dts_val(np, "TEMPERATURE_T0",
@@ -3022,6 +3128,48 @@ void fg_cmd_check(struct fgd_nl_msg_t *msg)
 	}
 }
 
+static int sync_cycle_count(void)
+{
+	struct power_supply *max_verify_psy;
+	union power_supply_propval prop = {0, };
+	int cycle_count;
+
+	cycle_count = gm.bat_cycle;
+
+	max_verify_psy = power_supply_get_by_name("batt_verify");
+	if (!max_verify_psy) {
+		pr_err("Could not find batt_verify_psy\n");
+		gm.cycle_count = INT_MIN;
+		return -ENODEV;
+	}
+
+	if (gm.cycle_count == INT_MIN)
+		gm.cycle_count = cycle_count;
+
+	if (gm.maxim_cycle_count == INT_MIN) {
+		power_supply_get_property(max_verify_psy,
+			POWER_SUPPLY_PROP_MAXIM_BATT_CYCLE_COUNT, &prop);
+		gm.maxim_cycle_count = prop.intval;
+	}
+
+	pr_info("gm.cycle_count[%d] cycle_count[%d]\n",
+			gm.cycle_count, cycle_count);
+
+	if (gm.cycle_count < cycle_count) {
+		prop.intval = 1;
+		power_supply_set_property(max_verify_psy,
+			POWER_SUPPLY_PROP_MAXIM_BATT_CYCLE_COUNT, &prop);
+		power_supply_get_property(max_verify_psy,
+			POWER_SUPPLY_PROP_MAXIM_BATT_CYCLE_COUNT, &prop);
+		gm.maxim_cycle_count = (u16)prop.intval;
+		pr_info("cycle_count[%d], last cycle_count[%d], maxim dc_value[%d]\n",
+				cycle_count, gm.cycle_count, gm.maxim_cycle_count);
+		gm.cycle_count++;
+	}
+
+	return 0;
+}
+
 void fg_daemon_comm_INT_data(char *rcv, char *ret)
 {
 	struct fgd_cmd_param_t_7 *prcv;
@@ -3212,6 +3360,8 @@ void fg_daemon_comm_INT_data(char *rcv, char *ret)
 	case FG_SET_BAT_CYCLES:
 		{
 			gm.bat_cycle = prcv->input;
+			if (suppld_maxim)
+				sync_cycle_count();
 		}
 		break;
 	case FG_SET_NCAR:
@@ -3377,8 +3527,8 @@ void bmd_ctrl_cmd_from_user(void *nl_data, struct fgd_nl_msg_t *ret_msg)
 		{
 			int is_charger_exist = 0;
 
-			if (upmu_get_rgs_chrdet() == 0 ||
-				mt_usb_is_device() == 0)
+			//if (upmu_get_rgs_chrdet() == 0 || mt_usb_is_device() == 0)
+			if (upmu_get_rgs_chrdet() == 0 || mt_get_charger_type() == 0)
 				is_charger_exist = false;
 			else
 				is_charger_exist = true;
@@ -3387,7 +3537,7 @@ void bmd_ctrl_cmd_from_user(void *nl_data, struct fgd_nl_msg_t *ret_msg)
 			memcpy(ret_msg->fgd_data,
 				&is_charger_exist, sizeof(is_charger_exist));
 
-			bm_debug(
+			bm_err(
 				"[fr] FG_DAEMON_CMD_IS_CHARGER_EXIST = %d\n",
 				is_charger_exist);
 		}
@@ -4369,6 +4519,7 @@ void bmd_ctrl_cmd_from_user(void *nl_data, struct fgd_nl_msg_t *ret_msg)
 			battery_main.BAT_CAPACITY = gm.ui_soc;
 			battery_update(&battery_main);
 		}
+		gm.soc_raw = daemon_ui_soc;
 	}
 	break;
 
@@ -4674,6 +4825,8 @@ void mtk_battery_init(struct platform_device *dev)
 	gm.sw_iavg_gap = 3000;
 
 	gm.fixed_bat_tmp = 0xffff;
+	gm.cycle_count = INT_MIN;
+	gm.maxim_cycle_count = INT_MIN;
 
 	mutex_init(&gm.fg_mutex);
 	mutex_init(&gm.sw_low_battery_mutex);

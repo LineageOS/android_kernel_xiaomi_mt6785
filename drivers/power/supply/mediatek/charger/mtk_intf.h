@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -19,6 +20,8 @@
 #include "mtk_pe40.h"
 #include "mtk_pdc.h"
 
+extern struct charger_manager *p_info;
+
 enum adapter_ret {
 	ADAPTER_OK = 0,
 	ADAPTER_NOT_SUPPORT,
@@ -26,6 +29,7 @@ enum adapter_ret {
 	ADAPTER_REJECT,
 	ADAPTER_ERROR,
 	ADAPTER_ADJUST,
+	ADAPTER_VERIFYING,
 };
 
 extern int charger_is_chip_enabled(bool *en);

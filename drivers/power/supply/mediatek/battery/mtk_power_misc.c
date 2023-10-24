@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -70,13 +71,13 @@ static void wake_up_power_misc(struct shutdown_controller *sdd)
 	sdd->timeout = true;
 	wake_up(&sdd->wait_que);
 }
-
+#if 0  /*zhouhua remove 60 temp kernel shutdown*/
 static void wake_up_overheat(struct shutdown_controller *sdd)
 {
 	sdd->overheat = true;
 	wake_up(&sdd->wait_que);
 }
-
+#endif
 void set_shutdown_vbat_lt(int vbat_lt, int vbat_lt_lv1)
 {
 	g_vbat_lt = vbat_lt;
@@ -544,7 +545,7 @@ int mtk_power_misc_psy_event(
 					"battery temperature >= %d,shutdown",
 					tmp);
 
-				wake_up_overheat(&sdc);
+				//wake_up_overheat(&sdc);   /*zhouhua remove 60 temp kernel shutdown*/
 			}
 		}
 	}

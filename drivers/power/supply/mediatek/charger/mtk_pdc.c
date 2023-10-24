@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -17,6 +18,9 @@
 #include <linux/time.h>
 #include <linux/slab.h>
 #include "mtk_intf.h"
+
+#include <linux/power/mtk_pdc_mi.h>
+#include <linux/power_supply.h>
 
 #define PD_MIN_WATT 5000000
 #define PD_VBUS_IR_DROP_THRESHOLD 1200
@@ -181,11 +185,12 @@ int pdc_setup(int idx)
 	}
 
 	if (pd->pd_idx != idx || force_update) {
+		/*
 		if (pd->cap.max_mv[idx] > 5000)
 			enable_vbus_ovp(false);
 		else
 			enable_vbus_ovp(true);
-
+		*/
 		charger_get_mivr(&oldmivr);
 		mivr = pd->data.min_charger_voltage / 1000;
 		pdc_set_mivr(pd->data.min_charger_voltage);
@@ -422,7 +427,7 @@ int pdc_init(void)
 		pd->pd_boost_idx = 0;
 		pd->pd_buck_idx = 0;
 		pd->vbus_l = 5000;
-		pd->vbus_h = 5000;
+		pd->vbus_h = 10000;
 
 		return 0;
 	}
@@ -464,6 +469,8 @@ int pdc_set_data(struct pdc_data data)
 
 int pdc_set_current(void)
 {
+	chr_err("[%s] enter.\n",
+			__func__);
 	if (pd->pdc_input_current_limit_setting != -1 &&
 	    pd->pdc_input_current_limit_setting <
 	    pd->data.input_current_limit)
@@ -478,7 +485,12 @@ int pdc_set_current(void)
 
 int pdc_set_cv(void)
 {
+#ifdef CONFIG_BQ2597X_CHARGE_PUMP
+	pd->data.battery_cv = 4450000;
 	charger_set_constant_voltage(pd->data.battery_cv);
+#else
+	charger_set_constant_voltage(pd->data.battery_cv);
+#endif
 
 	return 0;
 }
@@ -487,6 +499,13 @@ int pdc_run(void)
 {
 	int ret = 0;
 	int vbus = 0, cur = 0, idx = 0;
+#ifdef CONFIG_BQ2597X_CHARGE_PUMP
+	int maxwatt_now = 0;
+	struct power_supply	*battery_psy;
+	union power_supply_propval val = {0,};
+
+	battery_psy = power_supply_get_by_name("battery");
+#endif
 
 	pd->vbus_l = pd->data.pd_vbus_low_bound / 1000;
 	pd->vbus_h = pd->data.pd_vbus_upper_bound / 1000;
@@ -500,6 +519,29 @@ int pdc_run(void)
 		pdc_set_current();
 		pdc_setup(idx);
 	}
+
+#ifdef CONFIG_BQ2597X_CHARGE_PUMP
+	maxwatt_now = pd->cap.max_mv[pd->pd_idx] * pd->cap.ma[pd->pd_idx];
+	chr_err("[%s] maxwatt_now:%d\n",
+			__func__, maxwatt_now);
+	if (maxwatt_now > 18000000)
+		pd->data.input_current_limit = 2000000;
+
+	if (battery_psy) {
+		ret = power_supply_get_property(battery_psy,
+			POWER_SUPPLY_PROP_FAST_CHARGE_CURRENT, &val);
+		if (ret) {
+			pr_err("get thermal current limit failed!!\n");
+		} else {
+			pr_err("thermal current limit is %d\n", val.intval);
+			if (val.intval < pd->data.charging_current_limit)
+				pd->data.charging_current_limit = val.intval;
+		}
+	} else {
+		pr_err("battery_psy not found\n");
+	}
+	pdc_set_current();
+#endif
 
 	ret = pdc_check_leave();
 
