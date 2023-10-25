@@ -277,10 +277,12 @@ static int mt_charger_online(struct mt_charger *mtk_chg)
 				system_state);
 			//if (system_state != SYSTEM_POWER_OFF)
 			//	kernel_power_off();
+			kpd_pmic_pwrkey_hal(0);
+			mdelay(200);
 			kpd_pmic_pwrkey_hal(1);
 			mdelay(200);
 			kpd_pmic_pwrkey_hal(0);
-			mdelay(1500);
+			mdelay(1200);
 		}
 	}
 
@@ -373,7 +375,7 @@ static int mt_charger_set_property(struct power_supply *psy,
 	power_supply_get_property(usb_psy, POWER_SUPPLY_PROP_PD_VERIFY_IN_PROCESS, &pval);
 	if (pval.intval == 1) {
 		pr_info("pd verifing, don't switch data role\n", __func__);
-	} else if (!cti->ignore_usb) {
+	} else if ((cti != NULL) && !cti->ignore_usb) {
 		/* usb */
 		if ((mtk_chg->chg_type == STANDARD_HOST) ||
 			(mtk_chg->chg_type == CHARGING_HOST)) {
@@ -389,7 +391,10 @@ static int mt_charger_set_property(struct power_supply *psy,
 		}
 	}
 
-	queue_work(cti->chg_in_wq, &cti->chg_in_work);
+	if(cti != NULL){
+		queue_work(cti->chg_in_wq, &cti->chg_in_work);
+	}
+
 	#ifdef CONFIG_EXTCON_USB_CHG
 	if (!IS_ERR(info->edev))
 		queue_delayed_work(system_power_efficient_wq,
@@ -420,7 +425,7 @@ static int mt_ac_get_property(struct power_supply *psy,
 		/* Reset to 0 if charger type is USB */
 		if ((mtk_chg->chg_type == STANDARD_HOST) ||
 			(mtk_chg->chg_type == CHARGING_HOST))
-			val->intval = 0;
+			val->intval = 1;
 
 		break;
 	default:
@@ -522,6 +527,7 @@ int get_quick_charge_type(struct mt_charger *mtk_chg)
 				pval.intval = 100;
 				rc = power_supply_set_property(bms_psy, POWER_SUPPLY_PROP_MTK_SOC_DECIMAL_RATE, &pval);
 				schedule_delayed_work(&mtk_chg->clear_soc_decimal_rate_work, msecs_to_jiffies(CLEAR_SOC_DECIMAL_RATE_MS));
+				msleep(500);
 				power_supply_changed(bms_psy);
 				soc_decimal_rate_changed = true;
 				pr_info("%s, soc_decimal_rate_changed:QUICK_CHARGE_TURBE.\n", __func__);
@@ -1185,8 +1191,7 @@ bypass_chgdet:
 				  __func__, ret);
 		if (tcpm_inquire_typec_attach_state(cti->tcpc) ==
 						   TYPEC_ATTACHED_AUDIO)
-			val.intval = attach ? NONSTANDARD_CHARGER :
-					      CHARGER_UNKNOWN;
+			val.intval = CHARGER_UNKNOWN;
 		else
 			val.intval = attach ? STANDARD_HOST : CHARGER_UNKNOWN;
 		ret = power_supply_set_property(psy,

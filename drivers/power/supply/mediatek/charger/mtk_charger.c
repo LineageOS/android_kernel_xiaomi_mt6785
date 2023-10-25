@@ -2468,7 +2468,7 @@ static bool mtk_is_charger_on(struct charger_manager *info)
 		else
 			info->chr_type = chr_type;
 
-		if (info->cable_out_cnt > 0) {
+		if (info->cable_out_cnt > 0 && chr_type == CHARGER_UNKNOWN) {
 			mtk_charger_plug_out(info);
 			mtk_charger_plug_in(info, chr_type);
 			mutex_lock(&info->cable_out_lock);
