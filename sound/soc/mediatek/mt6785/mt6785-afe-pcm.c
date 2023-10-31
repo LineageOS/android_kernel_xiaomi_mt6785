@@ -31,6 +31,7 @@
 
 #if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP)
 #include "../audio_dsp/mtk-dsp-common.h"
+#include <adsp_core.h>
 #endif
 #if defined(CONFIG_SND_SOC_MTK_SCP_SMARTPA)
 #include "../scp_spk/mtk-scp-spk-common.h"
@@ -218,19 +219,15 @@ int mt6785_fe_trigger(struct snd_pcm_substream *substream, int cmd,
 				}
 			}
 		}
-#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) ||\
-	defined(CONFIG_MTK_VOW_SUPPORT)  /* TODO: check memif->vow_barge_in_enable */
-		if (runtime->stop_threshold == ~(0U))
-			ret = 0;
-		else
-/* only when adsp enable using hw semaphore to set memif */
-#if defined(CONFIG_MTK_AUDIODSP_SUPPORT)
+		/* set memif disable */
+#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP)
+		if (runtime->stop_threshold != ~(0U) || (!is_adsp_system_running()) ||
+		    mtk_audio_get_adsp_reset_status())
 			ret = mtk_dsp_memif_set_disable(afe, id);
 #else
+		/* barge-in set stop_threshold == ~(0U), memif is set by scp */
+		if (runtime->stop_threshold != ~(0U))
 			ret = mtk_memif_set_disable(afe, id);
-#endif
-#else
-		ret = mtk_memif_set_disable(afe, id);
 #endif
 		if (ret) {
 			dev_err(afe->dev, "%s(), error, id %d, memif enable, ret %d\n",
@@ -238,11 +235,12 @@ int mt6785_fe_trigger(struct snd_pcm_substream *substream, int cmd,
 		}
 
 		/* disable interrupt */
-#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) ||\
-	defined(CONFIG_MTK_VOW_SUPPORT)  /* TODO: check memif->vow_barge_in_enable */
-		if (runtime->stop_threshold != ~(0U))
+#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP)
+		if (runtime->stop_threshold != ~(0U) || (!is_adsp_system_running()) ||
+			mtk_audio_get_adsp_reset_status())
 			mtk_dsp_irq_set_disable(afe, irq_data);
 #else
+		/* barge-in set stop_threshold == ~(0U), interrupt is set by scp */
 		if (runtime->stop_threshold != ~(0U))
 			mtk_regmap_update_bits(afe->regmap,
 					       irq_data->irq_en_reg,
@@ -250,9 +248,9 @@ int mt6785_fe_trigger(struct snd_pcm_substream *substream, int cmd,
 					       0 << irq_data->irq_en_shift);
 
 #endif
-		/* and clear pending IRQ */
-#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) ||\
-	defined(CONFIG_MTK_VOW_SUPPORT)  /* TODO: check memif->vow_barge_in_enable */
+		/* clear pending IRQ */
+#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) || defined(CONFIG_MTK_VOW_SUPPORT)
+		/* TODO: check memif->vow_barge_in_enable */
 		if (runtime->stop_threshold != ~(0U))
 #endif
 			regmap_write(afe->regmap, irq_data->irq_clr_reg,
