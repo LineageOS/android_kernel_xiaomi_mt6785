@@ -9418,12 +9418,14 @@ irqreturn_t ISP_Irq_CAM(enum ISP_IRQ_TYPE_ENUM irq_module)
 		if ((ISP_RD32(CAM_REG_CTL_SPARE2(reg_module)) % 0x100)
 			!= g_virtual_cq_cnt[module]) {
 			IrqStatus &= ~SOF_INT_ST;
+			/*
 			IRQ_LOG_KEEPER(module, m_CurrentPPB, _LOG_INF,
 				"CAM%c PHY cqcnt:%d != VIR cqcnt:%d, IrqStatus:0x%x\n",
 				'A' + cardinalNum,
 				ISP_RD32(CAM_REG_CTL_SPARE2(reg_module)) % 0x100,
 				g_virtual_cq_cnt[module],
 				IrqStatus);
+			*/
 		}
 		/* During SOF, re-enable that err/warn irq had been marked and
 		 * reset IrqCntInfo
