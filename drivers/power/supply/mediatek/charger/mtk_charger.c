@@ -744,19 +744,7 @@ int charger_manager_enable_chg_type_det(struct charger_consumer *consumer,
 {
 	struct charger_manager *info = consumer->cm;
 	struct charger_device *chg_dev = NULL;
-	union power_supply_propval val = {0,};
-	struct power_supply *charger_psy, *usb_psy;
-	struct mt_charger *mt_chg = power_supply_get_drvdata(pinfo->usb_psy);
 	int ret = 0;
-
-	if (!charger_identify_psy)
-		charger_identify_psy = power_supply_get_by_name("Charger_Identify");
-
-	if (!charger_psy)
-		charger_psy = power_supply_get_by_name("charger");
-
-	if (!usb_psy)
-		usb_psy = power_supply_get_by_name("usb");
 
 	if (info != NULL) {
 		switch (info->data.bc12_charger) {
@@ -772,43 +760,9 @@ int charger_manager_enable_chg_type_det(struct charger_consumer *consumer,
 				__func__);
 			break;
 		}
-#ifdef CONFIG_XMUSB350_DET_CHG
-		for (retry = 0; retry < 4; retry++) {
-			if (charger_identify_psy) {
-				ret = power_supply_get_property(charger_identify_psy, POWER_SUPPLY_PROP_QC35_ERROR_STATE, &val);
-				if (ret != -EAGAIN)
-					break;
-				msleep(50);
-			}
-		}
-#endif
-		if (ret == -EAGAIN) {
-			if (charger_psy) {
-				ret = power_supply_get_property(usb_psy, POWER_SUPPLY_PROP_VOLTAGE_NOW, &val);
-				if (val.intval < INVALID_VBUS_THRE) {
-					chr_err("%s vbus invalid: %d.\n", __func__, val.intval);
-					en = false;
-				}
 
-				if (en) {
-					val.intval = STANDARD_HOST;
-					mt_chg->usb_desc.type = POWER_SUPPLY_TYPE_USB;
-				} else {
-					val.intval = CHARGER_UNKNOWN;
-					mt_chg->usb_desc.type = POWER_SUPPLY_TYPE_UNKNOWN;
-				}
-
-				ret = power_supply_set_property(charger_psy, POWER_SUPPLY_PROP_CHARGE_TYPE, &val);
-				if (ret < 0)
-					chr_err("%s xmusb350 is bad, fail to set type, en = %d\n", __func__, en);
-				else
-					chr_err("%s xmusb350 is bad, force a type, en = %d\n", __func__, en);
-			}
-
-			return 0;
-		}
-
-		chr_err("%s: %s is doing charger detect\n", __func__, info->data.bc12_charger == SLAVE_CHARGER ? "xmusb350" : "mt6360");
+		chr_err("%s: chg%d is doing bc12\n", __func__,
+			info->data.bc12_charger + 1);
 		ret = charger_dev_enable_chg_type_det(chg_dev, en);
 		if (ret < 0) {
 			chr_err("%s: en chgdet fail, en = %d\n", __func__, en);
@@ -816,7 +770,6 @@ int charger_manager_enable_chg_type_det(struct charger_consumer *consumer,
 		}
 	} else
 		chr_err("%s: charger_manager is null\n", __func__);
-
 	return 0;
 }
 
