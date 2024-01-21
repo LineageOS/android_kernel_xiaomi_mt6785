@@ -13,8 +13,8 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
 subdir-ccflags-y += -I$(srctree)/drivers/spi/mediatek/$(MTK_PLATFORM)
 
-subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/teei/300/tz_driver/include
-subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/teei/300/common/include/
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/teei/400/tz_driver/include
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/teei/400/common/include/
 
 ifeq ($(CONFIG_TRUSTONIC_TEE_SUPPORT),y)
 subdir-ccflags-y += -I$(srctree)/drivers/spi/trustzone/spi/Tlspi/inc
