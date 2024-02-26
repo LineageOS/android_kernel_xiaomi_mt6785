@@ -1332,11 +1332,13 @@ static ssize_t md_cd_parameter_store(struct ccci_modem *md,
 	return count;
 }
 
+#ifdef MTK_ECCCI_NET_SPEED_MONITOR
 static ssize_t md_net_speed_show(struct ccci_modem *md, char *buf)
 {
 	return snprintf(buf, 4096, "curr netspeed log:%d\n",
 		mtk_ccci_toggle_net_speed_log());
 }
+#endif
 
 extern int ccci_get_md_smem_buf(char **pbuf, unsigned int *size);
 
@@ -1365,7 +1367,9 @@ CCCI_MD_ATTR(NULL, md_smem, 0440, md_cd_smem_show, NULL);
 CCCI_MD_ATTR(NULL, dump, 0660, md_cd_dump_show, md_cd_dump_store);
 CCCI_MD_ATTR(NULL, parameter, 0660, md_cd_parameter_show,
 	md_cd_parameter_store);
+#ifdef MTK_ECCCI_NET_SPEED_MONITOR
 CCCI_MD_ATTR(NULL, net_speed, 0660, md_net_speed_show, NULL);
+#endif
 
 static void md_cd_sysfs_init(struct ccci_modem *md)
 {
@@ -1385,11 +1389,13 @@ static void md_cd_sysfs_init(struct ccci_modem *md)
 			"fail to add sysfs node %s %d\n",
 			ccci_md_attr_parameter.attr.name, ret);
 
+#ifdef MTK_ECCCI_NET_SPEED_MONITOR
 	ret = sysfs_create_file(&md->kobj, &ccci_md_attr_net_speed.attr);
 	if (ret)
 		CCCI_ERROR_LOG(md->index, TAG,
 			"fail to add sysfs node %s %d\n",
 			ccci_md_attr_net_speed.attr.name, ret);
+#endif
 
 	ret = sysfs_create_file(&md->kobj, &ccci_md_attr_md_smem.attr);
 	if (ret)
