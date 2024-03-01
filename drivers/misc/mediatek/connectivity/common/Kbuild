@@ -255,9 +255,3 @@ endif
 $(MODULE_NAME)-objs += debug_utility/ring.o
 $(MODULE_NAME)-objs += debug_utility/ring_emi.o
 $(MODULE_NAME)-objs += debug_utility/connsys_debug_utility.o
-###############################################################################
-# test
-###############################################################################
-ifeq ($(TARGET_BUILD_VARIANT),eng)
-ccflags-y += -I$(KO_CODE_PATH)/test/include
-endif

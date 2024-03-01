@@ -189,10 +189,6 @@ CONFIG_MTK_WIFI_PKT_OFLD_SUPPORT=y
 CONFIG_MTK_WIFI_APF_SUPPORT=y
 ccflags-y += -DCFG_SUPPORT_BW160
 
-ifneq ($(TARGET_BUILD_VARIANT),user)
-CONFIG_MTK_WIFI_NAN=y
-endif
-
 ccflags-y += -DCFG_POWER_ON_DOWNLOAD_EMI_ROM_PATCH=1
 ccflags-y += -DCFG_ROM_PATCH_NO_SEM_CTRL=1
 ccflags-y += -DCONFIG_MTK_WIFI_HE160
@@ -367,11 +363,7 @@ else
 endif
 
 # Disable ASSERT() for user load, enable for others
-ifneq ($(TARGET_BUILD_VARIANT),user)
-    ccflags-y += -DBUILD_QA_DBG=1
-else
     ccflags-y += -DBUILD_QA_DBG=0
-endif
 
 ifeq ($(CONFIG_MTK_COMBO_WIFI),y)
     ccflags-y += -DCFG_WPS_DISCONNECT=1
