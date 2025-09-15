@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a64270d4_4b3a0ce9",
+        "filename": "sound/soc/mediatek/audio_dsp/mtk-dsp-common_define.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 25732
+      },
+      "writtenOn": "2025-09-15T13:50:16Z",
+      "side": 1,
+      "message": "At least keep this fix...",
+      "revId": "53059256e1e3c03df4da010b3d382d7b3fd24087",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
