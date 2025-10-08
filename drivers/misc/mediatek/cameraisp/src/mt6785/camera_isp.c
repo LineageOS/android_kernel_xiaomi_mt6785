@@ -43,7 +43,7 @@
 
 
 /* MET: define to enable MET*/
-#define ISP_MET_READY
+//#define ISP_MET_READY
 
 //#define EP_NO_K_LOG_ADJUST /*20190326: should be removed*/
 

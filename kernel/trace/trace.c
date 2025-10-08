@@ -12,7 +12,9 @@
  *  Copyright (C) 2004 Nadia Yvette Chambers
  */
 
+#ifdef CONFIG_MTK_SCHED_TRACERS
 #define DEBUG 1
+#endif
 
 #include <linux/ring_buffer.h>
 #include <generated/utsrelease.h>
@@ -51,9 +53,6 @@
 
 #ifdef CONFIG_MTK_SCHED_TRACERS
 #include "mtk_ftrace.h"
-#define CREATE_TRACE_POINTS
-#include <trace/events/mtk_events.h>
-EXPORT_TRACEPOINT_SYMBOL(gpu_freq);
 #endif
 /*
  * On boot up, the ring buffer is set to the minimum size, so that
