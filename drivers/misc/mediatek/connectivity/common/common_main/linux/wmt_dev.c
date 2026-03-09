@@ -504,10 +504,10 @@ MTK_WCN_BOOL wmt_dev_is_file_exist(PUINT8 pFileName)
 	return true;
 }
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 static ULONG count_last_access_sdio;
 static ULONG count_last_access_btif;
 static ULONG count_last_access_uart;
-static ULONG jiffies_last_poll;
 
 static INT32 wmt_dev_tra_sdio_update(VOID)
 {
@@ -532,6 +532,9 @@ extern INT32 wmt_dev_tra_uart_update(VOID)
 
 	return 0;
 }
+#endif
+
+static ULONG jiffies_last_poll;
 
 static UINT32 wmt_dev_tra_poll(VOID)
 {
@@ -558,9 +561,11 @@ static UINT32 wmt_dev_tra_poll(VOID)
 	}
 
 	switch (chip_type) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case WMT_CHIP_TYPE_COMBO:
 		during_count = count_last_access_sdio;
 		break;
+#endif
 	case WMT_CHIP_TYPE_SOC:
 		if (mtk_wcn_wlan_bus_tx_cnt == NULL) {
 			WMT_ERR_FUNC("WMT-DEV:mtk_wcn_wlan_bus_tx_cnt null pointer\n");
@@ -583,9 +588,13 @@ static UINT32 wmt_dev_tra_poll(VOID)
 	}
 
 	jiffies_last_poll = jiffies;
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (chip_type == WMT_CHIP_TYPE_COMBO)
 		count_last_access_sdio = 0;
 	else if (chip_type == WMT_CHIP_TYPE_SOC)
+#else
+	if (chip_type == WMT_CHIP_TYPE_SOC)
+#endif
 		(*mtk_wcn_wlan_bus_tx_cnt_clr)();
 	else
 		WMT_ERR_FUNC("WMT-DEV:error chip type(%d)\n", chip_type);
@@ -1081,7 +1090,10 @@ LONG WMT_unlocked_ioctl(struct file *filp, UINT32 cmd, ULONG arg)
 				WMT_INFO_FUNC("stp dump start.\n");
 			else {
 				WMT_INFO_FUNC("Trigger kernel api dump.\n");
-				if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO ||
+				if (
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
+					wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO ||
+#endif
 					mtk_wcn_stp_coredump_flag_get() == 2) {
 					pBuffer = kmalloc(NAME_MAX + 1, GFP_KERNEL);
 					if (!pBuffer) {
@@ -1220,12 +1232,14 @@ LONG WMT_unlocked_ioctl(struct file *filp, UINT32 cmd, ULONG arg)
 		break;
 	case WMT_IOCTL_WMT_TELL_CHIPID:
 		{
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 #if !(DELETE_HIF_SDIO_CHRDEV)
 			iRet = mtk_wcn_hif_sdio_tell_chipid(arg);
 #endif
 			if (0x6628 == arg || 0x6630 == arg || 0x6632 == arg)
 				wmt_lib_merge_if_flag_ctrl(1);
 			else
+#endif
 				wmt_lib_merge_if_flag_ctrl(0);
 		}
 		break;
@@ -1632,7 +1646,9 @@ static INT32 WMT_init(VOID)
 #if (MTK_WCN_REMOVE_KO)
 	/* called in do_common_drv_init() */
 #else
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	mtk_wcn_hif_sdio_drv_init();
+#endif
 #endif
 	stp_drv_init();
 
@@ -1700,8 +1716,10 @@ static INT32 WMT_init(VOID)
 	WMT_STEP_INIT_FUNC();
 
 	chip_type = wmt_detect_get_chip_type();
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (chip_type == WMT_CHIP_TYPE_COMBO)
 		mtk_wcn_hif_sdio_update_cb_reg(wmt_dev_tra_sdio_update);
+#endif
 
 	wmt_lib_register_thermal_ctrl_cb(wmt_dev_tm_temp_query);
 	wmt_lib_register_trigger_assert_cb(wmt_lib_trigger_assert);
@@ -1732,7 +1750,7 @@ static INT32 WMT_init(VOID)
 
 #if (MTK_WCN_REMOVE_KO)
 	/* called in do_common_drv_init() */
-#else
+#elif defined(MTK_WCN_COMBO_CHIP_SUPPORT)
 	mtk_wcn_stp_uart_drv_init();
 	mtk_wcn_stp_sdio_drv_init();
 #endif
@@ -1788,8 +1806,10 @@ static VOID WMT_exit(VOID)
 #endif /* CONFIG_EARLYSUSPEND */
 
 	wmt_dev_patch_info_free();
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	mtk_wcn_stp_uart_drv_exit();
 	mtk_wcn_stp_sdio_drv_exit();
+#endif
 
 	wmt_dev_bgw_desense_deinit();
 
@@ -1820,7 +1840,9 @@ static VOID WMT_exit(VOID)
 	gWmtMajor = -1;
 
 	stp_drv_exit();
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	mtk_wcn_hif_sdio_driver_exit();
+#endif
 	gWmtInitStatus = WMT_INIT_NOT_START;
 	WMT_INFO_FUNC("done\n");
 }

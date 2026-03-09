@@ -106,9 +106,11 @@ static long wmt_detect_unlocked_ioctl(struct file *filp, unsigned int cmd, unsig
 		retval = wmt_detect_ext_chip_pwr_off();
 		break;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case COMBO_IOCTL_DO_SDIO_AUDOK:
 		retval = sdio_detect_do_autok(arg);
 		break;
+#endif
 
 	case COMBO_IOCTL_CONNSYS_SOC_HW_INIT:
 		retval = wmt_plat_consys_hw_init();
@@ -123,9 +125,11 @@ static long wmt_detect_unlocked_ioctl(struct file *filp, unsigned int cmd, unsig
 		retval = wmt_plat_get_adie_chipid();
 		break;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case COMBO_IOCTL_MODULE_CLEANUP:
 		retval = sdio_detect_exit();
 		break;
+#endif
 
 	case COMBO_IOCTL_DO_MODULE_INIT:
 #if (MTK_WCN_REMOVE_KO)
@@ -265,7 +269,12 @@ int wmt_detect_set_chip_type(int chip_id)
 	case 0x6628:
 	case 0x6630:
 	case 0x6632:
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		g_chip_type = WMT_CHIP_TYPE_COMBO;
+#else
+		WMT_DETECT_PR_ERR("Combo chip NOT supported by this driver!\n");
+		g_chip_type = WMT_CHIP_TYPE_SOC;
+#endif
 		break;
 	case -1:
 		break;
@@ -306,10 +315,10 @@ static int wmt_detect_driver_init(void)
 	int cdevErr = -1;
 	int ret = -1;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	/*init SDIO-DETECT module */
 	sdio_detect_init();
 
-#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	ret = platform_driver_register(&wmt_detect_driver);
 	if (ret)
 		WMT_DETECT_PR_ERR("platform driver register fail ret:%d\n", ret);
@@ -364,9 +373,9 @@ err1:
 	}
 
 err0:
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	sdio_detect_exit();
 
-#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	platform_driver_unregister(&wmt_detect_driver);
 #endif
 
@@ -392,9 +401,9 @@ static void wmt_detect_driver_exit(void)
 	cdev_del(&gWmtDetectCdev);
 	unregister_chrdev_region(dev, WMT_DETECT_DEV_NUM);
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	sdio_detect_exit();
 
-#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_driver.driver.p)
 		platform_driver_unregister(&wmt_detect_driver);
 #endif

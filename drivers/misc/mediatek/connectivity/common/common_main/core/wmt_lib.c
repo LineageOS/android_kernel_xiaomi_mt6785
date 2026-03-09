@@ -645,6 +645,7 @@ INT32 wmt_lib_set_hif(ULONG hifconf)
 
 	val = hifconf & 0xF;
 	switch (val) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	case STP_UART_FULL:
 		pHif->hifType = WMT_HIF_UART;
 		pHif->uartFcCtrl = ((hifconf & 0xc) >> 2);
@@ -659,6 +660,7 @@ INT32 wmt_lib_set_hif(ULONG hifconf)
 		mtk_wcn_stp_set_if_tx_type(STP_SDIO_IF_TX);
 		wmt_plat_set_comm_if_type(STP_SDIO_IF_TX);
 		break;
+#endif
 	case STP_BTIF_FULL:
 		pHif->hifType = WMT_HIF_BTIF;
 		mtk_wcn_stp_set_if_tx_type(STP_BTIF_IF_TX);
@@ -2856,12 +2858,14 @@ INT32 wmt_lib_sdio_reg_rw(INT32 func_num, INT32 direction, UINT32 offset, UINT32
 
 	chip_type = wmt_detect_get_chip_type();
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (chip_type == WMT_CHIP_TYPE_COMBO) {
 		if (sdio_reg_rw)
 			ret = sdio_reg_rw(func_num, direction, offset, value);
 		else
 			WMT_ERR_FUNC("sdio_reg_rw callback is not set, maybe the sdio funcxx write/read not used\n");
 	} else
+#endif
 		WMT_ERR_FUNC("It`s soc project, this function is not used\n");
 	return ret;
 }

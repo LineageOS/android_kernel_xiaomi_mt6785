@@ -303,8 +303,10 @@ INT32 wmt_func_bt_on(P_WMT_IC_OPS pOps, P_WMT_GEN_CONF pConf)
 	ULONG ctrlPa1;
 	ULONG ctrlPa2;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO)
 		return wmt_core_func_ctrl_cmd(WMTDRV_TYPE_BT, MTK_WCN_BOOL_TRUE);
+#endif
 
 	ctrlPa1 = BT_PALDO;
 	ctrlPa2 = PALDO_ON;
@@ -334,8 +336,10 @@ INT32 wmt_func_bt_off(P_WMT_IC_OPS pOps, P_WMT_GEN_CONF pConf)
 	ULONG ctrlPa1;
 	ULONG ctrlPa2;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO)
 		return wmt_core_func_ctrl_cmd(WMTDRV_TYPE_BT, MTK_WCN_BOOL_FALSE);
+#endif
 
 	iRet1 = wmt_core_func_ctrl_cmd(WMTDRV_TYPE_BT, MTK_WCN_BOOL_FALSE);
 	if (iRet1)
@@ -772,6 +776,7 @@ INT32 wmt_func_fm_off(P_WMT_IC_OPS pOps, P_WMT_GEN_CONF pConf)
 
 INT32 wmt_func_wifi_ctrl(ENUM_FUNC_STATE funcState)
 {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	INT32 iRet = 0;
 	ULONG ctrlPa1 = WMT_SDIO_FUNC_WIFI;
 	ULONG ctrlPa2 = (funcState == FUNC_ON) ? 1 : 0;	/* turn on Wi-Fi driver */
@@ -781,6 +786,7 @@ INT32 wmt_func_wifi_ctrl(ENUM_FUNC_STATE funcState)
 		WMT_ERR_FUNC("WMT-FUNC: turn on WIFI function fail (%d)", iRet);
 		return -1;
 	}
+#endif
 	return 0;
 }
 
@@ -789,8 +795,10 @@ INT32 wmt_func_wifi_on(P_WMT_IC_OPS pOps, P_WMT_GEN_CONF pConf)
 {
 	INT32 iRet = 0;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO)
 		return wmt_func_wifi_ctrl(FUNC_ON);
+#endif
 
 	if (mtk_wcn_wlan_probe != NULL) {
 		WMT_WARN_FUNC("WMT-FUNC: wmt wlan func on before wlan probe\n");
@@ -815,8 +823,10 @@ INT32 wmt_func_wifi_off(P_WMT_IC_OPS pOps, P_WMT_GEN_CONF pConf)
 {
 	INT32 iRet = 0;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO)
 		return wmt_func_wifi_ctrl(FUNC_OFF);
+#endif
 
 	if (mtk_wcn_wlan_remove != NULL) {
 		WMT_WARN_FUNC("WMT-FUNC: wmt wlan func on before wlan remove\n");

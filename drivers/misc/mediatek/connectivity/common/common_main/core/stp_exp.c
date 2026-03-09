@@ -362,7 +362,9 @@ VOID stp_drv_exit(VOID)
 
 INT32 mtk_wcn_stp_sdio_wake_up_ctrl(MTK_WCN_HIF_SDIO_CLTCTX ctx)
 {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	stp_sdio_wake_up_ctrl(ctx);
+#endif
 	return 0;
 }
 EXPORT_SYMBOL(mtk_wcn_stp_sdio_wake_up_ctrl);

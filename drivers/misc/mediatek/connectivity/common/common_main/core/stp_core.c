@@ -2459,15 +2459,19 @@ INT32 mtk_wcn_stp_dbg_dump_package(VOID)
 
 		if (mtk_wcn_stp_coredump_start_get() == 0 &&
 		    mtk_wcn_stp_get_wmt_trg_assert() == 0) {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 			if (mtk_wcn_stp_is_sdio_mode()) {
 				stp_dbg_dmp_print(g_mtkstp_dbg);
 				STP_INFO_FUNC("STP_SDIO TX data dump start\n");
 				stp_sdio_txdbg_dump();
 			} else {
+#endif
 				mtk_wcn_consys_stp_btif_logger_ctrl(BTIF_DUMP_BTIF_REG);
 				mtk_wcn_consys_stp_btif_logger_ctrl(BTIF_DUMP_LOG);
 				stp_dbg_dmp_print(g_mtkstp_dbg);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 			}
+#endif
 		} else
 			STP_INFO_FUNC("assert start flag is set, disable packet dump function\n");
 	}
@@ -3485,10 +3489,12 @@ INT32 mtk_wcn_stp_assert_timeout_handle(VOID)
 	INT32 ret = 0;
 	P_CONSYS_EMI_ADDR_INFO p_ecsi;
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO) {
 		mtk_wcn_stp_ctx_restore();
 		return ret;
 	}
+#endif
 
 	p_ecsi = wmt_plat_get_emi_phy_add();
 	/* dump btif data */
@@ -3521,8 +3527,10 @@ INT32 mtk_wcn_stp_coredump_timeout_handle(VOID)
 
 	wmt_lib_coredump_timeout_dump();
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO)
 		mtk_wcn_stp_ctx_restore();
+#endif
 	return 0;
 }
 
@@ -3531,6 +3539,7 @@ VOID mtk_wcn_stp_dbg_pkt_log(INT32 type, INT32 dir)
 	stp_dbg_pkt_log(type, 0, 0, 0, dir, NULL, 0);
 }
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 VOID mtk_stp_sdio_retry_flag_ctrl(INT32 flag)
 {
 	if (flag) {
@@ -3554,6 +3563,7 @@ VOID mtk_stp_dump_sdio_register(VOID)
 {
 	stp_sdio_dump_register();
 }
+#endif
 
 INT32 mtk_stp_dbg_dmp_append(PUINT8 buf, INT32 max_len)
 {

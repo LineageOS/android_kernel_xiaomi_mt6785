@@ -778,8 +778,9 @@ static INT32 wmt_dbg_sdio_retry_ctrl(INT32 par1, INT32 par2, INT32 par3)
 {
 	WMT_INFO_FUNC("%s sdio retry!!\n", par2 == 0 ? "disable" : "enable");
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	mtk_stp_dbg_sdio_retry_flag_ctrl(par2 == 0 ? 0 : 1);
-
+#endif
 	return 0;
 }
 

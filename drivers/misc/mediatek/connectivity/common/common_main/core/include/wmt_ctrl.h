@@ -74,8 +74,10 @@ typedef enum _ENUM_WMT_CTRL_T {
 	WMT_CTRL_GET_PATCH = 7,
 	WMT_CTRL_GET_PATCH_NAME = 8,
 	WMT_CTRL_HOST_BAUDRATE_SET = 9,
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	WMT_CTRL_SDIO_HW = 10,	/* enable/disable SDIO1/2 of combo chip */
 	WMT_CTRL_SDIO_FUNC = 11,	/* probe/remove STP/Wi-Fi driver in SDIO1/2 of combo chip */
+#endif
 	WMT_CTRL_HWIDVER_SET = 12,	/* TODO: rename this and add chip id information in addition to chip version */
 	WMT_CTRL_HWVER_GET = 13,	/* TODO: [FixMe][GeorgeKuo] remove unused functions */
 	WMT_CTRL_STP_RST = 14,

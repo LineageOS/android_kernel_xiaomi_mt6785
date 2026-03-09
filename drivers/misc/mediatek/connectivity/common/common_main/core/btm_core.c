@@ -149,18 +149,22 @@ static INT32 _stp_btm_handler(MTKSTP_BTM_T *stp_btm, P_STP_BTM_OP pStpOp)
 		break;
 		/* coredump timeout */
 	case STP_OPID_BTM_DUMP_TIMEOUT:
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		/* append fake coredump end message */
 		if (dump_sink == 2 && wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO) {
 			stp_dbg_set_coredump_timer_state(CORE_DUMP_DOING);
 			STP_BTM_PR_WARN("generate fake coredump message\n");
 			stp_dbg_nl_send_data(FAKECOREDUMPEND, osal_sizeof(FAKECOREDUMPEND));
 		}
+#endif
 		stp_dbg_poll_cpupcr(5, 1, 1);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_COMBO) {
 			/* Flush dump data, and reset compressor */
 			STP_BTM_PR_INFO("Flush dump data\n");
 			stp_dbg_core_dump_flush(0, MTK_WCN_BOOL_TRUE);
 		}
+#endif
 		ret = mtk_wcn_stp_coredump_timeout_handle();
 		break;
 #if CFG_WMT_LTE_COEX_HANDLING

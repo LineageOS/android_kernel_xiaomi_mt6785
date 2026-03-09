@@ -101,6 +101,7 @@ typedef struct _GPIO_CTRL_INFO {
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
 */
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 extern const PUINT8 gpio_state_name[GPIO_PIN_ID_MAX][GPIO_STATE_MAX];
 extern const PUINT8 gpio_pin_name[GPIO_PIN_ID_MAX];
 extern GPIO_CTRL_INFO gpio_ctrl_info;
@@ -113,7 +114,6 @@ extern int mt_get_gpio_pull_enable_base(unsigned long pin);
 extern int mt_get_gpio_dir_base(unsigned long pin);
 extern int mt_get_gpio_ies_base(unsigned long pin);
 
-
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S
 ********************************************************************************
@@ -123,5 +123,6 @@ VOID _wmt_dump_gpio_regs(INT32 idx);
 VOID _wmt_gpio_pre_regs(INT32 num, WMT_GPIO_STATE_INFO *gpio_state);
 VOID _wmt_dump_gpio_pre_regs(WMT_GPIO_STATE_INFO gpio_state);
 INT32 wmt_gpio_deinit(VOID);
+#endif
 
 #endif

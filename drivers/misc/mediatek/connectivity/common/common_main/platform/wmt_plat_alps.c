@@ -107,8 +107,9 @@ static INT32 wmt_plat_uart_rx_ctrl(ENUM_PIN_STATE state);
 #if CFG_WMT_LTE_COEX_HANDLING
 static INT32 wmt_plat_tdm_req_ctrl(ENUM_PIN_STATE state);
 #endif
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 static INT32 wmt_plat_dump_pin_conf(VOID);
-
+#endif
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -412,6 +413,7 @@ INT32 wmt_plat_deinit(VOID)
 	return 0;
 }
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 INT32 wmt_plat_sdio_ctrl(WMT_SDIO_SLOT_NUM sdioPortType, ENUM_FUNC_STATE on)
 {
 	return board_sdio_ctrl(sdioPortType, (on == FUNC_OFF) ? 0 : 1);
@@ -548,6 +550,7 @@ static INT32 wmt_plat_dump_pin_conf(VOID)
 
 	return 0;
 }
+#endif
 
 INT32 wmt_plat_pwr_ctrl(ENUM_FUNC_STATE state)
 {
@@ -558,30 +561,38 @@ INT32 wmt_plat_pwr_ctrl(ENUM_FUNC_STATE state)
 		/* TODO:[ChangeFeature][George] always output this or by request throuth /proc or sysfs? */
 		if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 			ret = mtk_wcn_consys_hw_pwr_on(gCoClockFlag);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		else {
 			wmt_plat_dump_pin_conf();
 			ret = mtk_wcn_cmb_hw_pwr_on();
 		}
+#endif
 		break;
 
 	case FUNC_OFF:
 		if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 			ret = mtk_wcn_consys_hw_pwr_off(gCoClockFlag);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		else
 			ret = mtk_wcn_cmb_hw_pwr_off();
+#endif
 		break;
 
 	case FUNC_RST:
 		if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 			ret = mtk_wcn_consys_hw_rst(gCoClockFlag);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		else
 			ret = mtk_wcn_cmb_hw_rst();
+#endif
 		break;
 	case FUNC_STAT:
 		if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 			ret = mtk_wcn_consys_hw_state_show();
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		else
 			ret = mtk_wcn_cmb_hw_state_show();
+#endif
 		break;
 	default:
 		WMT_WARN_FUNC("WMT-PLAT:Warnning, invalid state(%d) in pwr_ctrl\n", state);
@@ -637,6 +648,7 @@ INT32 wmt_plat_eirq_ctrl(ENUM_PIN_ID id, ENUM_PIN_STATE state)
 					iret = 0;
 				}
 			} else {
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 				struct device_node *node;
 				INT32 ret = -EINVAL;
 
@@ -653,6 +665,7 @@ INT32 wmt_plat_eirq_ctrl(ENUM_PIN_ID id, ENUM_PIN_STATE state)
 				} else
 					WMT_ERR_FUNC("[%s] can't find BGF eint compatible node\n",
 						     __func__);
+#endif
 			}
 			g_bgf_irq_lock.counter = 1;
 		} else if (state == PIN_STA_EINT_EN) {
@@ -686,6 +699,7 @@ INT32 wmt_plat_eirq_ctrl(ENUM_PIN_ID id, ENUM_PIN_STATE state)
 		iret = 0;
 		break;
 	case PIN_ALL_EINT:
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 		if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_ALL_EINT_PIN].gpio_num != DEFAULT_PIN_ID) {
 			if (state == PIN_STA_INIT) {
 				disable_irq_nosync(gpio_to_irq(gpio_ctrl_info.
@@ -707,7 +721,7 @@ INT32 wmt_plat_eirq_ctrl(ENUM_PIN_ID id, ENUM_PIN_STATE state)
 			}
 		} else
 			WMT_DBG_FUNC("WMT-PLAT:ALL EINT not defined\n");
-
+#endif
 		iret = 0;
 		break;
 
@@ -739,6 +753,9 @@ INT32 wmt_plat_gpio_ctrl(ENUM_PIN_ID id, ENUM_PIN_STATE state)
 
 static INT32 wmt_plat_ldo_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_LDO_EN_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_DBG_FUNC("WMT-PLAT:LDO is not used\n");
 		return 0;
@@ -773,10 +790,14 @@ static INT32 wmt_plat_ldo_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 static INT32 wmt_plat_pmu_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_PMU_EN_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_ERR_FUNC("WMT-PLAT:PMU not define\n");
 		return -1;
@@ -841,6 +862,7 @@ static INT32 wmt_plat_pmu_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 static INT32 wmt_plat_rtc_ctrl(ENUM_PIN_STATE state)
@@ -867,6 +889,9 @@ static INT32 wmt_plat_rtc_ctrl(ENUM_PIN_STATE state)
 
 static INT32 wmt_plat_rst_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_RST_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_ERR_FUNC("WMT-PLAT:RST not define\n");
 		return -1;
@@ -913,10 +938,14 @@ static INT32 wmt_plat_rst_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 static INT32 wmt_plat_bgf_eint_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_BGF_EINT_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_INFO_FUNC("WMT-PLAT:BGF EINT not defined\n");
 		return 0;
@@ -947,6 +976,7 @@ static INT32 wmt_plat_bgf_eint_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 
@@ -994,6 +1024,9 @@ static INT32 wmt_plat_wifi_eint_ctrl(ENUM_PIN_STATE state)
 
 static INT32 wmt_plat_all_eint_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_ALL_EINT_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_DBG_FUNC("WMT-PLAT:ALL EINT not defined\n");
 		return 0;
@@ -1021,10 +1054,14 @@ static INT32 wmt_plat_all_eint_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 static INT32 wmt_plat_uart_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_UTXD_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_DBG_FUNC("WMT-PLAT:UART TX not defined\n");
 		return 0;
@@ -1060,10 +1097,14 @@ static INT32 wmt_plat_uart_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 static INT32 wmt_plat_pcm_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	UINT32 normalPCMFlag = 0;
 
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_PCM_DAICLK_PIN].gpio_num == DEFAULT_PIN_ID) {
@@ -1172,8 +1213,10 @@ static INT32 wmt_plat_pcm_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 static INT32 wmt_plat_cmb_i2s_ctrl(ENUM_PIN_STATE state)
 {
 	UINT32 normalI2SFlag = 0;
@@ -1279,6 +1322,7 @@ static INT32 wmt_plat_cmb_i2s_ctrl(ENUM_PIN_STATE state)
 
 	return 0;
 }
+#endif
 
 static INT32 wmt_plat_soc_i2s_ctrl(ENUM_PIN_STATE state)
 {
@@ -1293,8 +1337,10 @@ static INT32 wmt_plat_i2s_ctrl(ENUM_PIN_STATE state)
 
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 		ret = wmt_plat_soc_i2s_ctrl(state);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	else
 		ret = wmt_plat_cmb_i2s_ctrl(state);
+#endif
 
 	return ret;
 }
@@ -1304,6 +1350,7 @@ static INT32 wmt_plat_sdio_pin_ctrl(ENUM_PIN_STATE state)
 	return 0;
 }
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 static INT32 wmt_plat_cmb_gps_sync_ctrl(ENUM_PIN_STATE state)
 {
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_GPS_SYNC_PIN].gpio_num == DEFAULT_PIN_ID) {
@@ -1328,6 +1375,7 @@ static INT32 wmt_plat_cmb_gps_sync_ctrl(ENUM_PIN_STATE state)
 
 	return 0;
 }
+#endif
 
 static INT32 wmt_plat_soc_gps_sync_ctrl(ENUM_PIN_STATE state)
 {
@@ -1342,8 +1390,10 @@ static INT32 wmt_plat_gps_sync_ctrl(ENUM_PIN_STATE state)
 
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 		ret = wmt_plat_soc_gps_sync_ctrl(state);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	else
 		ret = wmt_plat_cmb_gps_sync_ctrl(state);
+#endif
 
 	return ret;
 }
@@ -1424,6 +1474,7 @@ static INT32 wmt_plat_soc_gps_lna_ctrl(ENUM_PIN_STATE state)
 	return 0;
 }
 
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 static INT32 wmt_plat_cmb_gps_lna_ctrl(ENUM_PIN_STATE state)
 {
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_GPS_LNA_PIN].gpio_num != DEFAULT_PIN_ID) {
@@ -1476,6 +1527,7 @@ static INT32 wmt_plat_cmb_gps_lna_ctrl(ENUM_PIN_STATE state)
 
 	return 0;
 }
+#endif
 
 static INT32 wmt_plat_gps_lna_ctrl(ENUM_PIN_STATE state)
 {
@@ -1483,14 +1535,19 @@ static INT32 wmt_plat_gps_lna_ctrl(ENUM_PIN_STATE state)
 
 	if (wmt_detect_get_chip_type() == WMT_CHIP_TYPE_SOC)
 		ret = wmt_plat_soc_gps_lna_ctrl(state);
+#ifdef MTK_WCN_COMBO_CHIP_SUPPORT
 	else
 		ret = wmt_plat_cmb_gps_lna_ctrl(state);
+#endif
 
 	return ret;
 }
 
 static INT32 wmt_plat_uart_rx_ctrl(ENUM_PIN_STATE state)
 {
+#ifndef MTK_WCN_COMBO_CHIP_SUPPORT
+	return 0;
+#else
 	if (gpio_ctrl_info.gpio_ctrl_state[GPIO_COMBO_URXD_PIN].gpio_num == DEFAULT_PIN_ID) {
 		WMT_DBG_FUNC("WMT-PLAT:UART RX not defined\n");
 		return 0;
@@ -1534,6 +1591,7 @@ static INT32 wmt_plat_uart_rx_ctrl(ENUM_PIN_STATE state)
 	}
 
 	return 0;
+#endif
 }
 
 #if CFG_WMT_LTE_COEX_HANDLING

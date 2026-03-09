@@ -146,11 +146,15 @@ ccflags-y += -I$(KO_CODE_PATH)/common_detect/drv_init/inc
 ccflags-y += -I$(KO_CODE_PATH)/common_detect
 ccflags-y += -I$(KO_CODE_PATH)/debug_utility
 
-$(MODULE_NAME)-objs += common_detect/wmt_detect_pwr.o
 $(MODULE_NAME)-objs += common_detect/wmt_detect.o
-$(MODULE_NAME)-objs += common_detect/sdio_detect.o
+ifeq ($(COMBO_CHIP_SUPPORT), true)
+$(MODULE_NAME)-objs += common_detect/wmt_detect_pwr.o
 $(MODULE_NAME)-objs += common_detect/mtk_wcn_stub_alps.o
+$(MODULE_NAME)-objs += common_detect/sdio_detect.o
 $(MODULE_NAME)-objs += common_detect/wmt_gpio.o
+else
+$(MODULE_NAME)-objs += common_detect/mtk_wcn_stub_alps_soc.o
+endif
 
 $(MODULE_NAME)-objs += common_detect/drv_init/fm_drv_init.o
 $(MODULE_NAME)-objs += common_detect/drv_init/conn_drv_init.o
@@ -222,9 +226,18 @@ endif
 $(MODULE_NAME)-objs += common_main/platform/wmt_plat_alps.o
 $(MODULE_NAME)-objs += common_main/platform/mtk_wcn_consys_hw.o
 $(MODULE_NAME)-objs += common_main/platform/mtk_wcn_dump_util.o
-$(MODULE_NAME)-objs += common_main/platform/mtk_wcn_cmb_hw.o
 
+ifeq ($(COMBO_CHIP_SUPPORT), true)
+$(MODULE_NAME)-objs += common_main/platform/mtk_wcn_cmb_hw.o
 $(MODULE_NAME)-objs += common_main/core/wmt_ic_6628.o
+$(MODULE_NAME)-objs += common_main/core/wmt_ic_6620.o
+$(MODULE_NAME)-objs += common_main/core/wmt_ic_6632.o
+$(MODULE_NAME)-objs += common_main/core/wmt_ic_6630.o
+$(MODULE_NAME)-objs += common_main/linux/hif_sdio.o
+$(MODULE_NAME)-objs += common_main/linux/stp_sdio.o
+$(MODULE_NAME)-objs += common_main/linux/stp_uart.o
+$(MODULE_NAME)-objs += common_main/linux/stp_dbg_combo.o
+endif
 $(MODULE_NAME)-objs += common_main/core/wmt_conf.o
 $(MODULE_NAME)-objs += common_main/core/stp_core.o
 $(MODULE_NAME)-objs += common_main/core/wmt_ctrl.o
@@ -233,22 +246,15 @@ $(MODULE_NAME)-objs += common_main/core/wmt_core.o
 $(MODULE_NAME)-objs += common_main/core/psm_core.o
 $(MODULE_NAME)-objs += common_main/core/wmt_ic_soc.o
 $(MODULE_NAME)-objs += common_main/core/wmt_lib.o
-$(MODULE_NAME)-objs += common_main/core/wmt_ic_6620.o
 $(MODULE_NAME)-objs += common_main/core/stp_exp.o
-$(MODULE_NAME)-objs += common_main/core/wmt_ic_6632.o
 $(MODULE_NAME)-objs += common_main/core/wmt_exp.o
 $(MODULE_NAME)-objs += common_main/core/btm_core.o
-$(MODULE_NAME)-objs += common_main/core/wmt_ic_6630.o
 
-$(MODULE_NAME)-objs += common_main/linux/hif_sdio.o
 $(MODULE_NAME)-objs += common_main/linux/stp_dbg_soc.o
-$(MODULE_NAME)-objs += common_main/linux/stp_dbg_combo.o
 $(MODULE_NAME)-objs += common_main/linux/osal.o
 $(MODULE_NAME)-objs += common_main/linux/wmt_dev.o
-$(MODULE_NAME)-objs += common_main/linux/stp_sdio.o
 $(MODULE_NAME)-objs += common_main/linux/bgw_desense.o
 $(MODULE_NAME)-objs += common_main/linux/wmt_idc.o
-$(MODULE_NAME)-objs += common_main/linux/stp_uart.o
 $(MODULE_NAME)-objs += common_main/linux/wmt_dbg.o
 $(MODULE_NAME)-objs += common_main/linux/stp_dbg.o
 $(MODULE_NAME)-objs += common_main/linux/wmt_user_proc.o
