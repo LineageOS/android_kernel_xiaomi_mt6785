@@ -7,7 +7,6 @@
 #if KERNEL_VERSION(5, 4, 0) <= CFG80211_VERSION_CODE
 /*TODO kernel 5.4 boost CPU */
 #else
-#include <cpu_ctrl.h>
 #include <topo_ctrl.h>
 #include <helio-dvfsrc-opp.h>
 #endif
@@ -78,22 +77,11 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 		    IN uint32_t u4BoostCpuTh)
 {
 	struct GLUE_INFO *prGlueInfo = NULL;
-	struct ppm_limit_data freq_to_set[MAX_CLUSTER_NUM];
-	int32_t i = 0, i4Freq = -1;
 
 	static struct pm_qos_request wifi_qos_request;
 	static u_int8_t fgRequested = ENUM_CPU_BOOST_STATUS_INIT;
 
-	uint32_t u4ClusterNum = topo_ctrl_get_nr_clusters();
-
 	WIPHY_PRIV(wlanGetWiphy(), prGlueInfo);
-	ASSERT(u4ClusterNum <= MAX_CLUSTER_NUM);
-	/* ACAO, we dont have to set core number */
-	i4Freq = (u4TarPerfLevel >= u4BoostCpuTh) ? MAX_CPU_FREQ : -1;
-	for (i = 0; i < u4ClusterNum; i++) {
-		freq_to_set[i].min = i4Freq;
-		freq_to_set[i].max = i4Freq;
-	}
 
 	if (fgRequested == ENUM_CPU_BOOST_STATUS_INIT) {
 		/* initially enable rps working at small cores */
@@ -111,8 +99,6 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 			set_task_util_min_pct(prGlueInfo->u4RxThreadPid, 100);
 			set_task_util_min_pct(prGlueInfo->u4HifThreadPid, 100);
 			kalSetRpsMap(prGlueInfo, CPU_BIG_CORE);
-			update_userlimit_cpu_freq(CPU_KIR_WIFI,
-				u4ClusterNum, freq_to_set);
 
 			KAL_ACQUIRE_MUTEX(prAdapter, MUTEX_BOOST_CPU);
 			pr_info("Max Dram Freq start\n");
@@ -132,8 +118,6 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 			set_task_util_min_pct(prGlueInfo->u4RxThreadPid, 0);
 			set_task_util_min_pct(prGlueInfo->u4HifThreadPid, 0);
 			kalSetRpsMap(prGlueInfo, CPU_LITTLE_CORE);
-			update_userlimit_cpu_freq(CPU_KIR_WIFI,
-				u4ClusterNum, freq_to_set);
 
 			KAL_ACQUIRE_MUTEX(prAdapter, MUTEX_BOOST_CPU);
 			pr_info("Max Dram Freq end\n");

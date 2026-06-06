@@ -9,7 +9,6 @@
 * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
 */
 
-#include <cpu_ctrl.h>
 #include <topo_ctrl.h>
 #ifdef WLAN_FORCE_DDR_OPP
 #include <linux/pm_qos.h>
@@ -35,28 +34,14 @@ uint32_t kalGetCpuBoostThreshold(void)
 	return 3;
 }
 
-#ifdef CONFIG_MTK_CPU_CTRL
 int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 		    IN uint32_t u4TarPerfLevel,
 		    IN uint32_t u4BoostCpuTh)
 {
-	struct cpu_ctrl_data freq_to_set[MAX_CLUSTER_NUM];
-	int32_t i = 0, i4Freq = -1;
 #ifdef WLAN_FORCE_DDR_OPP
 	static struct pm_qos_request wifi_qos_request;
 	static u_int8_t fgRequested;
 #endif
-	uint32_t u4ClusterNum = topo_ctrl_get_nr_clusters();
-
-	ASSERT(u4ClusterNum <= MAX_CLUSTER_NUM);
-	/* ACAO, we dont have to set core number */
-	i4Freq = (u4TarPerfLevel >= u4BoostCpuTh) ? MAX_CPU_FREQ : -1;
-	for (i = 0; i < u4ClusterNum; i++) {
-		freq_to_set[i].min = i4Freq;
-		freq_to_set[i].max = i4Freq;
-	}
-
-	update_userlimit_cpu_freq(CPU_KIR_WIFI, u4ClusterNum, freq_to_set);
 
 #ifdef WLAN_FORCE_DDR_OPP
 	if (u4TarPerfLevel >= u4BoostCpuTh) {
@@ -75,14 +60,6 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 #endif
 	return 0;
 }
-#else
-int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
-		    IN uint32_t u4TarPerfLevel,
-		    IN uint32_t u4BoostCpuTh)
-{
-	return 0;
-}
-#endif
 
 #ifdef CONFIG_WLAN_MTK_EMI
 void kalSetEmiMpuProtection(phys_addr_t emiPhyBase, bool enable)
