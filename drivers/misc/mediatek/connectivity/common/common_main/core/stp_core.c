@@ -149,52 +149,6 @@ static LONG stp_parser_dmp_num(PUINT8 str);
 static INT32 wmt_parser_data(PUINT8 buffer, UINT32 length, UINT8 type);
 static MTK_WCN_BOOL mtk_wcn_stp_is_info_task(VOID);
 
-INT32 __weak mtk_wcn_consys_stp_btif_logger_ctrl(enum _ENUM_BTIF_DBG_ID_ flag)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_logger_ctrl is not define!!\n");
-	return 0;
-}
-INT32 __weak mtk_wcn_consys_stp_btif_open(VOID)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_open is not define!!\n");
-
-	return 0;
-}
-
-INT32 __weak mtk_wcn_consys_stp_btif_close(VOID)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_close is not define!!\n");
-
-	return 0;
-}
-
-INT32 __weak mtk_wcn_consys_stp_btif_rx_cb_register(MTK_WCN_BTIF_RX_CB rx_cb)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_rx_cb_register is not define!!\n");
-	return 0;
-}
-
-INT32 __weak mtk_wcn_consys_stp_btif_tx(const PUINT8 pBuf, const UINT32 len, PUINT32 written_len)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_tx is not define!!\n");
-
-	return 0;
-}
-
-INT32 __weak mtk_wcn_consys_stp_btif_wakeup(VOID)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_wakeup is not define!!\n");
-
-	return 0;
-}
-
-INT32 __weak mtk_wcn_consys_stp_btif_lpbk_ctrl(enum _ENUM_BTIF_LPBK_MODE_ mode)
-{
-	STP_INFO_FUNC("in combo flow, mtk_wcn_consys_stp_btif_lpbk_ctrl is not define!!\n");
-
-	return 0;
-}
-
 static INT32 stp_ctx_lock_init(mtkstp_context_struct *pctx)
 {
 #if CFG_STP_CORE_CTX_SPIN_LOCK
