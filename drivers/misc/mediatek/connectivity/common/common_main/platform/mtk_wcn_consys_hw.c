@@ -108,39 +108,127 @@ static atomic_t g_probe_called = ATOMIC_INIT(0);
 
 #ifdef CONFIG_OF
 
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6580 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6739 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt8163 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt8167 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6771 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6765 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6761 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6779 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6768 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6785 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6781 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6833 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6853 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt6873 = {};
-WMT_CONSYS_IC_OPS __weak consys_ic_ops_mt8168 = {};
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6580)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6580;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6739)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6739;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_8163)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt8163;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_8167)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt8167;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6771)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6771;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6765)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6765;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6761)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6761;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6779)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6779;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6768)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6768;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6785)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6785;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6781)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6781;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6833)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6833;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6853)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6853;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6873)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt6873;
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_8168)
+extern WMT_CONSYS_IC_OPS consys_ic_ops_mt8168;
+#endif
 
 const struct of_device_id apwmt_of_ids[] = {
-	{.compatible = "mediatek,mt6580-consys", .data = &consys_ic_ops_mt6580},
-	{.compatible = "mediatek,mt6739-consys", .data = &consys_ic_ops_mt6739},
-	{.compatible = "mediatek,mt8163-consys", .data = &consys_ic_ops_mt8163},
-	{.compatible = "mediatek,mt8167-consys", .data = &consys_ic_ops_mt8167},
-	{.compatible = "mediatek,mt6771-consys", .data = &consys_ic_ops_mt6771},
-	{.compatible = "mediatek,mt6765-consys", .data = &consys_ic_ops_mt6765},
-	{.compatible = "mediatek,mt6761-consys", .data = &consys_ic_ops_mt6761},
-	{.compatible = "mediatek,mt6779-consys", .data = &consys_ic_ops_mt6779},
-	{.compatible = "mediatek,mt6768-consys", .data = &consys_ic_ops_mt6768},
-	{.compatible = "mediatek,mt6785-consys", .data = &consys_ic_ops_mt6785},
-	{.compatible = "mediatek,mt6781-consys", .data = &consys_ic_ops_mt6781},
-	{.compatible = "mediatek,mt6833-consys", .data = &consys_ic_ops_mt6833},
-	{.compatible = "mediatek,mt6853-consys", .data = &consys_ic_ops_mt6853},
-	{.compatible = "mediatek,mt6873-consys", .data = &consys_ic_ops_mt6873},
-	{.compatible = "mediatek,mt8168-consys", .data = &consys_ic_ops_mt8168},
-	{}
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6580)
+    {.compatible = "mediatek,mt6580-consys", .data = &consys_ic_ops_mt6580},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6739)
+    {.compatible = "mediatek,mt6739-consys", .data = &consys_ic_ops_mt6739},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_8163)
+    {.compatible = "mediatek,mt8163-consys", .data = &consys_ic_ops_mt8163},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_8167)
+    {.compatible = "mediatek,mt8167-consys", .data = &consys_ic_ops_mt8167},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6771)
+    {.compatible = "mediatek,mt6771-consys", .data = &consys_ic_ops_mt6771},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6765)
+    {.compatible = "mediatek,mt6765-consys", .data = &consys_ic_ops_mt6765},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6761)
+    {.compatible = "mediatek,mt6761-consys", .data = &consys_ic_ops_mt6761},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6779)
+    {.compatible = "mediatek,mt6779-consys", .data = &consys_ic_ops_mt6779},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6768)
+    {.compatible = "mediatek,mt6768-consys", .data = &consys_ic_ops_mt6768},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6785)
+    {.compatible = "mediatek,mt6785-consys", .data = &consys_ic_ops_mt6785},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6781)
+    {.compatible = "mediatek,mt6781-consys", .data = &consys_ic_ops_mt6781},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6833)
+    {.compatible = "mediatek,mt6833-consys", .data = &consys_ic_ops_mt6833},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6853)
+    {.compatible = "mediatek,mt6853-consys", .data = &consys_ic_ops_mt6853},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_6873)
+    {.compatible = "mediatek,mt6873-consys", .data = &consys_ic_ops_mt6873},
+#endif
+
+#if IS_ENABLED(CONFIG_MTK_COMBO_CHIP_CONSYS_8168)
+    {.compatible = "mediatek,mt8168-consys", .data = &consys_ic_ops_mt8168},
+#endif
+    {}
 };
 struct CONSYS_BASE_ADDRESS conn_reg;
 #endif
