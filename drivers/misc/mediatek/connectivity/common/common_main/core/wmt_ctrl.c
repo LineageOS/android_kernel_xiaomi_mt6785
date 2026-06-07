@@ -172,10 +172,6 @@ static const WMT_CTRL_FUNC wmt_ctrl_func[] = {
 *                              F U N C T I O N S
 ********************************************************************************
 */
-INT32 __weak mtk_wcn_consys_stp_btif_parser_wmt_evt(const PUINT8 str, UINT32 len)
-{
-	return 0;
-}
 
 INT32 wmt_ctrl(P_WMT_CTRL_DATA pWmtCtrlData)
 {

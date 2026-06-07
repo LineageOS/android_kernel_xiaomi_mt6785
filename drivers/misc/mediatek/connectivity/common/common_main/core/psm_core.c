@@ -101,11 +101,6 @@ static INT32 _stp_psm_is_redundant_active_op(P_OSAL_OP pOp, P_OSAL_OP_Q pOpQ);
 static INT32 _stp_psm_clean_up_redundant_active_op(P_OSAL_OP_Q pOpQ);
 static MTK_WCN_BOOL _stp_psm_is_quick_ps_support(VOID);
 
-ENUM_STP_TX_IF_TYPE __weak wmt_plat_get_comm_if_type(VOID)
-{
-	return STP_MAX_IF_TX;
-}
-
 MTK_WCN_BOOL mtk_wcn_stp_psm_dbg_level(INT32 dbglevel)
 {
 	if (dbglevel >= 0 && dbglevel <= 4) {
