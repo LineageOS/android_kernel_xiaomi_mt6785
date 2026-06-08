@@ -8554,15 +8554,6 @@ void __weak kalSetEmiMetOffset(uint32_t newEmiMetOffset)
 	DBGLOG(SW4, WARN, "enter kalSetEmiMetOffset\n");
 }
 
-int32_t __weak kalSetCpuNumFreq(uint32_t u4CoreNum,
-				uint32_t u4Freq)
-{
-	DBGLOG(SW4, INFO,
-	       "enter weak kalSetCpuNumFreq, u4CoreNum:%d, urFreq:%d\n",
-	       u4CoreNum, u4Freq);
-	return 0;
-}
-
 int32_t __weak kalGetFwFlavorByPlat(uint8_t *flavor)
 {
 	DBGLOG(SW4, INFO, "NO firmware flavor build.\n");

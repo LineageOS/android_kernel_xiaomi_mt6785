@@ -1203,8 +1203,6 @@ static ssize_t procAutoPerfCfgRead(struct file *filp, char __user *buf,
 static ssize_t procAutoPerfCfgWrite(struct file *file, const char *buffer,
 	size_t count, loff_t *data)
 {
-	uint32_t u4CoreNum = 0;
-	uint32_t u4CoreFreq = 0;
 	uint8_t *temp = &g_aucProcBuf[0];
 	uint32_t u4CopySize = count;
 	uint8_t i = 0;
@@ -1222,14 +1220,6 @@ static ssize_t procAutoPerfCfgWrite(struct file *file, const char *buffer,
 	}
 
 	g_aucProcBuf[u4CopySize] = '\0';
-
-	i = sscanf(temp, "%d:%d", &u4CoreNum, &u4CoreFreq);
-	if (i == 2) {
-		DBGLOG(INIT, INFO, "u4CoreNum:%d, u4CoreFreq:%d\n", u4CoreNum,
-			u4CoreFreq);
-		kalSetCpuNumFreq(u4CoreNum, u4CoreFreq);
-		return u4CopySize;
-	}
 
 	if (strlen(temp) > sizeof(aucBuf)) {
 		DBGLOG(INIT, WARN,

@@ -1852,8 +1852,6 @@ void kalSetEmiMpuProtection(phys_addr_t emiPhyBase, bool enable);
 void kalSetDrvEmiMpuProtection(phys_addr_t emiPhyBase, uint32_t offset,
 			       uint32_t size);
 #endif
-int32_t kalSetCpuNumFreq(uint32_t u4CoreNum,
-			 uint32_t u4Freq);
 int32_t kalGetFwFlavor(uint8_t *flavor);
 int32_t kalGetFwFlavorByPlat(uint8_t *flavor);
 int32_t kalGetConnsysVerId(void);
