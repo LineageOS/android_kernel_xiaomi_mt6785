@@ -44,18 +44,6 @@ const struct file_operations BT_fopsfwlog = {
 	.compat_ioctl = btmtk_fops_compat_ioctlfwlog
 };
 
-__weak int32_t btmtk_intcmd_wmt_utc_sync(void)
-{
-	BTMTK_ERR("weak function %s not implement", __func__);
-	return -1;
-}
-
-__weak int32_t btmtk_intcmd_set_fw_log(uint8_t flag)
-{
-	BTMTK_ERR("weak function %s not implement", __func__);
-	return -1;
-}
-
 void fw_log_bt_state_cb(uint8_t state)
 {
 	uint8_t on_off;

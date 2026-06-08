@@ -65,29 +65,6 @@ static const struct btmtk_cif_state g_cif_state[] = {
 	{BTMTK_STATE_FW_DUMP, BTMTK_STATE_FW_DUMP, BTMTK_STATE_FW_DUMP},
 };
 
-__weak int btmtk_cif_register(void)
-{
-	BTMTK_ERR("weak function %s not implement", __func__);
-	return -1;
-}
-
-__weak int btmtk_cif_deregister(void)
-{
-	BTMTK_ERR("weak function %s not implement", __func__);
-	return -1;
-}
-
-__weak int btmtk_cif_send_calibration(struct btmtk_dev *bdev)
-{
-	BTMTK_ERR("weak function %s not implement", __func__);
-	return -1;
-}
-
-__weak int btmtk_cif_rx_packet_handler(struct hci_dev *hdev, struct sk_buff *skb)
-{
-	BTMTK_ERR("weak function %s not implement", __func__);
-	return -1;
-}
 void btmtk_do_gettimeofday(struct timespec64 *time)
 {
 	ktime_get_real_ts64(time);
@@ -1786,20 +1763,6 @@ err1:
 	if (rom_patch)
 		vfree(rom_patch);
 	return ret;
-}
-
-/* need to remove after modify to using function pointer*/
-__weak int32_t bgfsys_bt_patch_dl(void)
-{
-	BTMTK_ERR("No bgfsys_bt_patch_dl function");
-	return -1;
-}
-
-/* need to remove after modify to using function pointer*/
-__weak int32_t btmtk_set_sleep(struct hci_dev *hdev, u_int8_t need_wait)
-{
-	BTMTK_ERR("No btmtk_set_sleep function");
-	return -1;
 }
 
 int btmtk_load_rom_patch_66xx(struct btmtk_dev *bdev)
