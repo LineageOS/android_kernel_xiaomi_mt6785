@@ -101,3 +101,23 @@ void kalSetDrvEmiMpuProtection(phys_addr_t emiPhyBase, uint32_t offset,
 	emi_mpu_set_protection(&region_info);
 }
 #endif
+
+uint32_t kalGetCpuBoostThreshold(void)
+{
+	/*  1, stands for 20Mbps */
+	return 1;
+}
+
+int32_t kalCheckTputLoad(IN struct ADAPTER *prAdapter,
+			 IN uint32_t u4CurrPerfLevel,
+			 IN uint32_t u4TarPerfLevel,
+			 IN int32_t i4Pending,
+			 IN uint32_t u4Used)
+{
+	return FALSE;
+}
+
+int32_t kalGetFwFlavorByPlat(uint8_t *flavor)
+{
+	return 0;
+}

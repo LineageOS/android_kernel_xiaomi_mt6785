@@ -75,6 +75,13 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 #endif
 	return 0;
 }
+#else
+int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
+		    IN uint32_t u4TarPerfLevel,
+		    IN uint32_t u4BoostCpuTh)
+{
+	return 0;
+}
 #endif
 
 #ifdef CONFIG_WLAN_MTK_EMI
@@ -107,4 +114,13 @@ int32_t kalGetFwFlavorByPlat(uint8_t *flavor)
 {
 	*flavor = 'a';
 	return 1;
+}
+
+int32_t kalCheckTputLoad(IN struct ADAPTER *prAdapter,
+			 IN uint32_t u4CurrPerfLevel,
+			 IN uint32_t u4TarPerfLevel,
+			 IN int32_t i4Pending,
+			 IN uint32_t u4Used)
+{
+	return FALSE;
 }

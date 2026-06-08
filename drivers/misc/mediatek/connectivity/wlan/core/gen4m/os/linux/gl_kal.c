@@ -8523,43 +8523,6 @@ uint32_t kalPerMonGetInfo(IN struct ADAPTER *prAdapter,
 	return u4Len;
 }
 
-int32_t __weak kalBoostCpu(IN struct ADAPTER *prAdapter,
-			   IN uint32_t u4TarPerfLevel, IN uint32_t u4BoostCpuTh)
-{
-	DBGLOG(SW4, INFO, "enter kalBoostCpu\n");
-	return 0;
-}
-
-uint32_t __weak kalGetCpuBoostThreshold(void)
-{
-	DBGLOG(SW4, WARN, "enter kalGetCpuBoostThreshold\n");
-	/*  1, stands for 20Mbps */
-	return 1;
-}
-
-#if CFG_SUPPORT_LITTLE_CPU_BOOST
-uint32_t __weak kalGetLittleCpuBoostThreshold(void)
-{
-	return kalGetCpuBoostThreshold();
-}
-#endif /* CFG_SUPPORT_LITTLE_CPU_BOOST */
-
-uint32_t __weak kalGetEmiMetOffset(void)
-{
-	DBGLOG(SW4, WARN, "enter kalGetEmiMetOffset\n");
-	return 0;
-}
-void __weak kalSetEmiMetOffset(uint32_t newEmiMetOffset)
-{
-	DBGLOG(SW4, WARN, "enter kalSetEmiMetOffset\n");
-}
-
-int32_t __weak kalGetFwFlavorByPlat(uint8_t *flavor)
-{
-	DBGLOG(SW4, INFO, "NO firmware flavor build.\n");
-	return 0;
-}
-
 int32_t kalGetFwFlavor(uint8_t *flavor)
 {
 	struct mt66xx_hif_driver_data *prDriverData;
@@ -8572,39 +8535,6 @@ int32_t kalGetFwFlavor(uint8_t *flavor)
 	}
 
 	return kalGetFwFlavorByPlat(flavor);
-}
-
-int32_t __weak kalGetConnsysVerId(void)
-{
-	DBGLOG(SW4, WARN, "NO CONNSYS version ID.\n");
-	return 0;
-}
-
-void __weak kalSetEmiMpuProtection(phys_addr_t emiPhyBase, bool enable)
-{
-	DBGLOG(SW4, WARN, "EMI MPU function is not defined\n");
-}
-
-void __weak kalSetDrvEmiMpuProtection(phys_addr_t emiPhyBase, uint32_t offset,
-				      uint32_t size)
-{
-	DBGLOG(SW4, WARN, "DRV EMI MPU function is not defined\n");
-}
-
-int32_t __weak kalCheckTputLoad(IN struct ADAPTER *prAdapter,
-			 IN uint32_t u4CurrPerfLevel,
-			 IN uint32_t u4TarPerfLevel,
-			 IN int32_t i4Pending,
-			 IN uint32_t u4Used)
-{
-	DBGLOG(SW4, TRACE, "enter kalCheckTputLoad\n");
-	return FALSE;
-}
-
-int32_t __weak kalCheckVcoreBoost(IN struct ADAPTER *prAdapter,
-				  IN uint8_t uBssIndex)
-{
-	return FALSE;
 }
 
 /* mimic store_rps_map as net-sysfs.c does */

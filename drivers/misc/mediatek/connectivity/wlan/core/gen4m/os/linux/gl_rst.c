@@ -514,12 +514,6 @@ static void mtk_wifi_trigger_reset(struct work_struct *work)
 				fgResult, rst->rst_trigger_flag);
 }
 #endif
-/* Weak reference for those platform doesn't support wmt functions */
-int32_t __weak mtk_wcn_stp_coredump_start_get(void)
-{
-	return FALSE;
-}
-
 
 /*0= f/w assert flag is not set, others=f/w assert flag is set */
 int32_t glIsWmtCodeDump(void)

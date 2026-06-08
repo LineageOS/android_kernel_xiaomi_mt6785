@@ -195,6 +195,13 @@ int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 
 	return 0;
 }
+#else
+int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
+		    IN uint32_t u4TarPerfLevel,
+		    IN uint32_t u4BoostCpuTh)
+{
+	return 0;
+}
 #endif
 #ifdef CONFIG_WLAN_MTK_EMI
 void kalSetEmiMpuProtection(phys_addr_t emiPhyBase, bool enable)
@@ -236,3 +243,8 @@ void kalSetEmiMpuProtection(phys_addr_t emiPhyBase, bool enable)
 {
 }
 #endif
+
+int32_t kalGetFwFlavorByPlat(uint8_t *flavor)
+{
+	return 0;
+}

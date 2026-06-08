@@ -66,6 +66,12 @@ int32_t kalCheckTputLoad(IN struct ADAPTER *prAdapter,
 }
 
 #if KERNEL_VERSION(5, 4, 0) <= CFG80211_VERSION_CODE
+int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
+		    IN uint32_t u4TarPerfLevel,
+		    IN uint32_t u4BoostCpuTh)
+{
+	return 0;
+}
 #else
 int32_t kalBoostCpu(IN struct ADAPTER *prAdapter,
 		    IN uint32_t u4TarPerfLevel,

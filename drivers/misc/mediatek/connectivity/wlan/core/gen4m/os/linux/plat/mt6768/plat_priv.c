@@ -119,3 +119,12 @@ int32_t kalGetFwFlavorByPlat(uint8_t *flavor)
 	*flavor = 'a';
 	return 1;
 }
+
+int32_t kalCheckTputLoad(IN struct ADAPTER *prAdapter,
+			 IN uint32_t u4CurrPerfLevel,
+			 IN uint32_t u4TarPerfLevel,
+			 IN int32_t i4Pending,
+			 IN uint32_t u4Used)
+{
+	return FALSE;
+}
