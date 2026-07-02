@@ -20,7 +20,7 @@
 
 
 #ifdef CONFIG_DRM_MEDIATEK
-extern int mtkfb_set_backlight_level(unsigned int level);
+extern int mtkfb_set_backlight_level(int level, int div);
 #endif
 
 #ifdef MET_USER_EVENT_SUPPORT
@@ -171,7 +171,7 @@ static int led_level_disp_set(struct mtk_led_data *s_led,
 		return 0;
 
 #ifdef CONFIG_DRM_MEDIATEK
-	mtkfb_set_backlight_level(brightness);
+	mtkfb_set_backlight_level(brightness, 0);
 	s_led->conf.level = brightness;
 #endif
 	return 0;

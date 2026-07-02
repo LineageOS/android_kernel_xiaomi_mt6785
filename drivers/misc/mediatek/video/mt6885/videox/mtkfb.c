@@ -297,7 +297,7 @@ static int mtkfb_blank(int blank_mode, struct fb_info *info)
 }
 
 #ifndef CONFIG_DRM_MEDIATEK
-int mtkfb_set_backlight_level(unsigned int level)
+int mtkfb_set_backlight_level(int level, int div)
 {
 	MTKFB_FUNC();
 	DISPDBG("mtkfb_set_backlight_level:%d Start\n",

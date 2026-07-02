@@ -17,7 +17,7 @@ enum disp_pwm_id_t {
 };
 #define disp_pwm_id_t enum disp_pwm_id_t
 
-extern int mtkfb_set_backlight_level(unsigned int level);
+extern int mtkfb_set_backlight_level(int level, int div);
 extern int disp_pwm_set_backlight(disp_pwm_id_t id, int level_1024);
 extern void disp_aal_notify_backlight_changed(int bl_1024);
 extern void ut_down_low(struct semaphore *sema);

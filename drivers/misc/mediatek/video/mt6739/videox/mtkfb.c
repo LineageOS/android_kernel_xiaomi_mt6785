@@ -260,7 +260,7 @@ int is_slt_test(void)
 	return slt_test;
 }
 
-int mtkfb_set_backlight_level(unsigned int level)
+int mtkfb_set_backlight_level(int level, int div)
 {
 	MTKFB_FUNC();
 	DISPDBG("mtkfb_set_backlight_level:%d Start\n", level);

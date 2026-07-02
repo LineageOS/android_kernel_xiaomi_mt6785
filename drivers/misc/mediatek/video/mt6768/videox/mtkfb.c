@@ -299,7 +299,7 @@ static int mtkfb_blank(int blank_mode, struct fb_info *info)
 }
 
 
-int mtkfb_set_backlight_level(unsigned int level)
+int mtkfb_set_backlight_level(int level, int div)
 {
 	bool aal_is_support = disp_aal_is_support();
 	MTKFB_FUNC();

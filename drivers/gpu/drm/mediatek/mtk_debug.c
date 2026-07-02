@@ -349,7 +349,7 @@ int mtk_dprec_logger_get_buf(enum DPREC_LOGGER_PR_TYPE type, char *stringbuf,
 }
 
 extern int mtk_drm_setbacklight(struct drm_crtc *crtc, unsigned int level);
-int mtkfb_set_backlight_level(unsigned int level)
+int mtkfb_set_backlight_level(int level, int div)
 {
 	struct drm_crtc *crtc;
 
@@ -2028,7 +2028,7 @@ static void process_dbg_opt(const char *opt)
 			return;
 		}
 
-		mtkfb_set_backlight_level(level);
+		mtkfb_set_backlight_level(level, 0);
 	} else if (!strncmp(opt, "aod_bl:", 7)) {
 		unsigned int level;
 		int ret;

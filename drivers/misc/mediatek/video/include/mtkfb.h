@@ -320,7 +320,7 @@ unsigned int mtkfb_fm_auto_test(void);
 void mtkfb_clear_lcm(void);
 #endif /* CONFIG_MACH_MT6735 */
 
-int mtkfb_set_backlight_level(unsigned int level);
+int mtkfb_set_backlight_level(int level, int div);
 #if defined(CONFIG_MTK_DUAL_DISPLAY_SUPPORT) && \
 	(CONFIG_MTK_DUAL_DISPLAY_SUPPORT == 2)
 int mtkfb1_set_backlight_level(unsigned int level);
