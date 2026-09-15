@@ -38,6 +38,8 @@ static int is_subsys_pwr_on(struct mtk_clk_gate *cg)
 
 	return true;
 }
+#if !defined(CONFIG_MACH_MT6761) && \
+		!defined(CONFIG_MACH_MT6765)
 static void mtk_cg_set_bit_unused(struct clk_hw *hw)
 {
 	struct mtk_clk_gate *cg = to_mtk_clk_gate(hw);
@@ -57,6 +59,8 @@ static void mtk_cg_clr_bit_unused(struct clk_hw *hw)
 
 	regmap_write(cg->regmap, cg->clr_ofs, BIT(cg->bit));
 }
+
+#endif
 
 static void mtk_cg_set_bit_no_setclr_unused(struct clk_hw *hw)
 {
@@ -80,6 +84,8 @@ static void mtk_cg_clr_bit_no_setclr_unused(struct clk_hw *hw)
 	regmap_update_bits(cg->regmap, cg->sta_ofs, cgbit, 0);
 }
 
+#if !defined(CONFIG_MACH_MT6761) && \
+		!defined(CONFIG_MACH_MT6765)
 static void mtk_cg_disable_inv_unused(struct clk_hw *hw)
 {
 	struct mtk_clk_gate *cg = to_mtk_clk_gate(hw);
@@ -105,6 +111,8 @@ static void mtk_cg_disable_unused(struct clk_hw *hw)
 
 	mtk_cg_set_bit_unused(hw);
 }
+
+#endif
 
 static void mtk_cg_disable_inv_no_setclr_unused(struct clk_hw *hw)
 {
