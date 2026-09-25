@@ -7,3 +7,43 @@ config MTK_CAMERA_ISP_CAMERA_SUPPORT
 	  Disable if it is not supported or
 	  not wanted.
 
+config MTK_CAMERA_ISP_SKIP_VIR_CQCNT_CHECK
+	bool "Don't wait for the virtual CQ count before signalling SOF"
+	depends on MACH_MT6765 || MACH_MT6768
+	depends on MTK_CAMERA_ISP
+	help
+	  Newer ISP drivers only wake up start-of-frame waiters once the
+	  CQ count in hardware matches the virtual CQ count that userspace
+	  reports through ISP_SET_VIR_CQCNT. Older camera HALs never issue
+	  that ioctl, so they are never woken and get stuck.
+
+	  This change is only present on MT6765 / MT6768.
+
+	  Say Y here if your camera HAL is affected by this change.
+
+config MTK_CAMERA_ISP_PM_QOS_NO_PORT_BW
+	bool "Omit per-port bandwidth from the PM QoS info ioctl"
+	depends on MACH_MT6761 || MACH_MT6765 || MACH_MT6768
+	depends on MTK_CAMERA_ISP
+	help
+	  Newer ISP drivers added a per-port bandwidth array to
+	  struct ISP_PM_QOS_INFO_STRUCT, which changes the size and
+	  therefore the number of the ISP_SET_PM_QOS_INFO ioctl.
+
+	  This change is only present on MT6761 / MT6765 / MT6768.
+
+	  Say Y here if your camera HAL is affected by this change.
+
+config MTK_CAMERA_ISP_NO_CLR_ISPCLK
+	bool "Omit the ISP_CLR_ISPCLK ioctl"
+	depends on MACH_MT6761
+	depends on MTK_CAMERA_ISP
+	help
+	  Newer ISP drivers added ISP_CMD_CLR_ISPCLK in the middle of
+	  enum ISP_CMD_ENUM, which shifts the number of every ioctl
+	  defined after it. Older camera HALs then issue the wrong
+	  ioctls, so the driver rejects them or misinterprets them.
+
+	  This change is only present on MT6761.
+
+	  Say Y here if your camera HAL is affected by this change.
