@@ -43,6 +43,7 @@
 #include "mtk_smi.h"
 #include "disp_drv_log.h"
 #include "disp_lowpower.h"
+#include "mtkfb_idle_state.h"
 #include "disp_arr.h"
 #include "disp_rect.h"
 #include "ddp_reg.h"
@@ -205,6 +206,7 @@ static int primary_display_set_idle_stat(int is_idle)
 	int old_stat = idlemgr_pgc->is_primary_idle;
 
 	idlemgr_pgc->is_primary_idle = is_idle;
+	mtkfb_idle_state_set(is_idle);
 	return old_stat;
 }
 

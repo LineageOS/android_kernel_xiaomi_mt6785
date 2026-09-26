@@ -29,12 +29,14 @@ ifeq ($(CONFIG_MTK_DISP_PLATFORM), "mt6779")
 endif
 
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/video/include
 
 ifneq ($(CONFIG_MTK_LCM), y)
 	obj-y += mtdummy/
 else
 	######################################
 	obj-$(CONFIG_MTK_FB) += $(subst ",,$(MTK_PLATFORM))/
+	obj-$(CONFIG_MTK_FB) += common/mtkfb_idle_state.o
 	obj-$(CONFIG_MACH_MT6763) += common/
 	obj-$(CONFIG_MACH_MT6755) += common/
 	obj-$(CONFIG_MACH_MT6797) += common/

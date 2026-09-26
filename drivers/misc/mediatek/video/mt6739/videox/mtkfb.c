@@ -41,6 +41,7 @@
 #include "disp_drv_log.h"
 #include "disp_lcm.h"
 #include "mtkfb.h"
+#include "mtkfb_idle_state.h"
 #include "mtkfb_console.h"
 #include "mtkfb_fence.h"
 #include "mtkfb_info.h"
@@ -2505,6 +2506,7 @@ static int mtkfb_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 	DISPMSG("register_framebuffer done\n");
+	mtkfb_idle_state_init(fbi->dev);
 #ifdef FPGA_DEBUG_PAN
 	test_task = kthread_create(update_test_kthread, NULL,
 				   "update_test_kthread");
