@@ -612,7 +612,7 @@ static int md_cd_stop(struct ccci_modem *md, unsigned int stop_type)
 
 	if (md->hif_flag & (1<<CLDMA_HIF_ID)) {
 		md_cldma_clear(1 << CLDMA_HIF_ID);
-		ccci_hif_stop(1 << CLDMA_HIF_ID);
+		ccci_hif_stop(CLDMA_HIF_ID);
 		cldma_plat_hw_reset(md->index);
 		cldma_plat_set_clk_cg(md->index, 0);
 	}
