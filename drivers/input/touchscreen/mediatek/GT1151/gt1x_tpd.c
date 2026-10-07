@@ -62,8 +62,7 @@ static int tpd_i2c_detect(struct i2c_client *client,
 				struct i2c_board_info *info);
 static int tpd_i2c_remove(struct i2c_client *client);
 
-static irqreturn_t tpd_eint_interrupt_handler(unsigned int irq,
-							struct irq_desc *desc);
+static irqreturn_t tpd_eint_interrupt_handler(int irq, void *dev_id);
 
 #define GTP_DRIVER_NAME  "gt1x"
 static const struct i2c_device_id tpd_i2c_id[] = { {GTP_DRIVER_NAME, 0}, {} };
@@ -519,7 +518,7 @@ static int tpd_irq_registration(void)
 		GTP_INFO("Device gt1x_int_type = %d!", gt1x_int_type);
 		if (!gt1x_int_type) {/*EINTF_TRIGGER*/
 			ret = request_irq(touch_irq,
-				(irq_handler_t) tpd_eint_interrupt_handler,
+				tpd_eint_interrupt_handler,
 				IRQF_TRIGGER_RISING,
 				"TOUCH_PANEL-eint", NULL);
 			if (ret > 0) {
@@ -528,7 +527,7 @@ static int tpd_irq_registration(void)
 			}
 		} else {
 			ret = request_irq(touch_irq,
-				(irq_handler_t) tpd_eint_interrupt_handler,
+				tpd_eint_interrupt_handler,
 				IRQF_TRIGGER_FALLING,
 				"TOUCH_PANEL-eint", NULL);
 			if (ret > 0) {
@@ -659,8 +658,7 @@ static s32 tpd_i2c_probe(struct i2c_client *client,
 	return 0;
 }
 
-static irqreturn_t tpd_eint_interrupt_handler(unsigned int irq,
-							struct irq_desc *desc)
+static irqreturn_t tpd_eint_interrupt_handler(int irq, void *dev_id)
 {
 	unsigned long flags;
 
