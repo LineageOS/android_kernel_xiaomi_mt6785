@@ -250,8 +250,9 @@ static int _convert_disp_input_to_ovl(struct OVL_CONFIG_STRUCT *dst,
 	return ret;
 }
 
-static int ovl2mem_callback(unsigned int userdata)
+static int ovl2mem_callback(unsigned long data)
 {
+	unsigned int userdata = data;
 	int fence_idx = 0;
 	int layid = 0;
 	int subtractor = 0;
@@ -515,7 +516,7 @@ int ovl2mem_trigger(int blocking, void *callback, unsigned int userdata)
 	/* /cmdqRecDumpCommand(pgcl->cmdq_handle_config); */
 
 	cmdqRecFlushAsyncCallback(pgcl->cmdq_handle_config,
-		(CmdqAsyncFlushCB)ovl2mem_callback,
+		ovl2mem_callback,
 				  atomic_read(&g_trigger_ticket));
 
 	cmdqRecReset(pgcl->cmdq_handle_config);
