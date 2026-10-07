@@ -451,10 +451,8 @@ static int dummy_codec_probe(struct snd_soc_component *component)
 	return 0;
 }
 
-static int dummy_codec_remove(struct snd_soc_component *component)
+static void dummy_codec_remove(struct snd_soc_component *component)
 {
-
-	return 0;
 }
 
 static const struct snd_soc_component_driver soc_mtk_codec = {
