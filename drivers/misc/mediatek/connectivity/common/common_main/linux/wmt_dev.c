@@ -1626,6 +1626,11 @@ UINT8 wmt_dev_is_close(VOID)
 	return gWmtClose;
 }
 
+static INT32 wmt_dev_trigger_assert_cb(UINT32 type, UINT32 reason)
+{
+	return wmt_lib_trigger_assert(type, reason);
+}
+
 static INT32 WMT_init(VOID)
 {
 	dev_t devID = MKDEV(gWmtMajor, 0);
@@ -1722,7 +1727,7 @@ static INT32 WMT_init(VOID)
 #endif
 
 	wmt_lib_register_thermal_ctrl_cb(wmt_dev_tm_temp_query);
-	wmt_lib_register_trigger_assert_cb(wmt_lib_trigger_assert);
+	wmt_lib_register_trigger_assert_cb(wmt_dev_trigger_assert_cb);
 
 	if (chip_type == WMT_CHIP_TYPE_SOC)
 		wmt_dev_bgw_desense_init();

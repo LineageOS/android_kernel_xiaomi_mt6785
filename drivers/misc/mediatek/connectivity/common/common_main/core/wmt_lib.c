@@ -278,6 +278,11 @@ VOID ENABLE_PSM_MONITOR(VOID)
 }
 
 
+static VOID wmt_lib_func_ctrl_cb(UINT32 on, UINT32 type)
+{
+	mtk_wcn_wmt_func_ctrl_for_plat(on, type);
+}
+
 INT32 wmt_lib_init(VOID)
 {
 	INT32 iRet;
@@ -445,7 +450,7 @@ INT32 wmt_lib_init(VOID)
 	/*5. register audio if control callback to WMT-PLAT */
 	wmt_plat_aif_cb_reg(wmt_lib_set_aif);
 	/*6. register function control callback to WMT-PLAT */
-	wmt_plat_func_ctrl_cb_reg(mtk_wcn_wmt_func_ctrl_for_plat);
+	wmt_plat_func_ctrl_cb_reg(wmt_lib_func_ctrl_cb);
 
 	wmt_plat_deep_idle_ctrl_cb_reg(mtk_wcn_consys_stp_btif_dpidle_ctrl);
 	/*7 reset gps/bt state */
