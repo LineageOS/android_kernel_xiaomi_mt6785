@@ -1288,6 +1288,11 @@ static struct gyro_factory_public ITG1010_factory_device = {
 };
 
 /*----------------------------------------------------------------------------*/
+static void inv_daemon_release(struct device *dev)
+{
+	kfree(dev);
+}
+
 static int ITG1010_i2c_probe(struct i2c_client *client,
 			     const struct i2c_device_id *id)
 {
@@ -1397,7 +1402,7 @@ static int ITG1010_i2c_probe(struct i2c_client *client,
 
 	inv_daemon_device->init_name = INV_DAEMON_DEVICE_NAME;
 	inv_daemon_device->class = inv_daemon_class;
-	inv_daemon_device->release = (void (*)(struct device *))kfree;
+	inv_daemon_device->release = inv_daemon_release;
 	result = device_register(inv_daemon_device);
 	if (result) {
 		pr_err_ratelimited("[Gyro]%s:cannot register inv daemon device, %s\n",

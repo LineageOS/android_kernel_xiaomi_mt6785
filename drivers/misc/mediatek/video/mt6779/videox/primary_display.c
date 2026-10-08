@@ -3282,18 +3282,17 @@ static int primary_display_cmdq_dump(uint64_t engineFlag, int level)
 	return 0;
 }
 
-unsigned int cmdqDdpClockOn(uint64_t engineFlag)
+s32 cmdqDdpClockOn(u64 engineFlag)
 {
 	return 0;
 }
 
-unsigned int cmdqDdpClockOff(uint64_t engineFlag)
+s32 cmdqDdpClockOff(u64 engineFlag)
 {
 	return 0;
 }
 
-unsigned int
-cmdqDdpDumpInfo(uint64_t engineFlag, int level)
+s32 cmdqDdpDumpInfo(u64 engineFlag, int level)
 {
 	DISPINFO("cmdq timeout:%llu\n", engineFlag);
 	/* Invoke all session cmdq dump callback */
@@ -3302,7 +3301,7 @@ cmdqDdpDumpInfo(uint64_t engineFlag, int level)
 	return 0;
 }
 
-unsigned int cmdqDdpResetEng(uint64_t engineFlag)
+s32 cmdqDdpResetEng(u64 engineFlag)
 {
 	return 0;
 }
@@ -4059,10 +4058,10 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps,
 	/* Part2: CMDQ */
 	if (use_cmdq) {
 		ret = cmdqCoreRegisterCB(CMDQ_GROUP_DISP,
-					 (CmdqClockOnCB)cmdqDdpClockOn,
-					 (CmdqDumpInfoCB)cmdqDdpDumpInfo,
-					 (CmdqResetEngCB)cmdqDdpResetEng,
-					 (CmdqClockOffCB)cmdqDdpClockOff);
+					 cmdqDdpClockOn,
+					 cmdqDdpDumpInfo,
+					 cmdqDdpResetEng,
+					 cmdqDdpClockOff);
 		if (ret) {
 			DISP_PR_ERR("cmdqCoreRegisterCB failed, ret=%d\n", ret);
 			ret = DISP_STATUS_ERROR;

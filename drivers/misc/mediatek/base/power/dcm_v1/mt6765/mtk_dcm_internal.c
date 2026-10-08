@@ -377,9 +377,8 @@ void dcm_infracfg_ao_emi_indiv(int on)
 {
 }
 
-int dcm_infra_preset(int on)
+void dcm_infra_preset(void)
 {
-	return 0;
 }
 
 int dcm_infra(int on)
@@ -438,9 +437,8 @@ int dcm_mcusys(int on)
 	return 0;
 }
 
-int dcm_mcusys_preset(int on)
+void dcm_mcusys_preset(void)
 {
-	return 0;
 }
 
 int dcm_big_core_preset(void)
@@ -453,14 +451,12 @@ int dcm_big_core(int on)
 	return 0;
 }
 
-int dcm_stall_preset(int on)
+void dcm_stall_preset(void)
 {
 	/* Not gen'ed as MT6763. Check if necessary.
 	 * dcm_mcu_misccfg_mp_stall_dcm(on);
 	 */
 	reg_write(SYNC_DCM_CLUSTER_CONFIG, 0x063f0000);
-
-	return 0;
 }
 
 int dcm_stall(int on)
@@ -557,7 +553,7 @@ struct DCM dcm_array[NR_DCM_TYPE] = {
 	 .typeid = MCUSYS_DCM_TYPE,
 	 .name = "MCUSYS_DCM",
 	 .func = (DCM_FUNC) dcm_mcusys,
-	 .preset_func = (DCM_PRESET_FUNC) dcm_mcusys_preset,
+	 .preset_func = dcm_mcusys_preset,
 	 .current_state = MCUSYS_DCM_ON,
 	 .default_state = MCUSYS_DCM_ON,
 	 .disable_refcnt = 0,
@@ -566,7 +562,7 @@ struct DCM dcm_array[NR_DCM_TYPE] = {
 	 .typeid = INFRA_DCM_TYPE,
 	 .name = "INFRA_DCM",
 	 .func = (DCM_FUNC) dcm_infra,
-	 .preset_func = (DCM_PRESET_FUNC) dcm_infra_preset,
+	 .preset_func = dcm_infra_preset,
 	 .current_state = INFRA_DCM_ON,
 	 .default_state = INFRA_DCM_ON,
 	 .disable_refcnt = 0,
@@ -608,7 +604,7 @@ struct DCM dcm_array[NR_DCM_TYPE] = {
 	 .typeid = STALL_DCM_TYPE,
 	 .name = "STALL_DCM",
 	 .func = (DCM_FUNC) dcm_stall,
-	 .preset_func = (DCM_PRESET_FUNC) dcm_stall_preset,
+	 .preset_func = dcm_stall_preset,
 	 .current_state = STALL_DCM_ON,
 	 .default_state = STALL_DCM_ON,
 	 .disable_refcnt = 0,

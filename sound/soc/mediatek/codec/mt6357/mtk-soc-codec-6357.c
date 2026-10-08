@@ -6064,10 +6064,9 @@ static int mt6357_component_probe(struct snd_soc_component *component)
 	return 0;
 }
 
-static int mt6357_component_remove(struct snd_soc_component *component)
+static void mt6357_component_remove(struct snd_soc_component *component)
 {
 	pr_debug("%s()\n", __func__);
-	return 0;
 }
 
 static unsigned int mt6357_component_read(struct snd_soc_component *component,

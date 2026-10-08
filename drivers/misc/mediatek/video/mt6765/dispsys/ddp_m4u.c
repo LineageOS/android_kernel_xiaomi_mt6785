@@ -66,6 +66,16 @@ enum DISP_MODULE_ENUM m4u_port_to_module(int port)
 	return DISP_MODULE_UNKNOWN;
 }
 
+#if !defined(CONFIG_MTK_IOMMU_V2) && defined(CONFIG_MTK_M4U)
+static m4u_callback_ret_t disp_m4u_fault_callback(int port, unsigned int mva,
+	void *data)
+{
+	disp_m4u_callback(port, mva, data);
+
+	return M4U_CALLBACK_HANDLED;
+}
+#endif
+
 void disp_m4u_init(void)
 {
 	unsigned int i;
@@ -82,7 +92,7 @@ void disp_m4u_init(void)
 #elif defined(CONFIG_MTK_M4U)
 			m4u_register_fault_callback(
 				module_to_m4u_port_mapping[i].port,
-				(m4u_fault_callback_t *)disp_m4u_callback, 0);
+				disp_m4u_fault_callback, 0);
 #endif
 		}
 	} else {

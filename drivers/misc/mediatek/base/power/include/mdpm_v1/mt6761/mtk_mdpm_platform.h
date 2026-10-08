@@ -367,7 +367,7 @@ enum md1_rf_avg_pwr_tbl_c2k {
 struct mdpm {
 	int scenario_power[POWER_TYPE_NUM];
 
-	int (*dbm_power_func[MAX_DBM_FUNC_NUM])(u32 *, unsigned int);
+	int (*dbm_power_func[MAX_DBM_FUNC_NUM])(u32 *, enum mdpm_power_type);
 
 };
 

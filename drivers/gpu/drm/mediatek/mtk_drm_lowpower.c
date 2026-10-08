@@ -203,6 +203,7 @@ void mtk_drm_idlemgr_kick(const char *source, struct drm_crtc *crtc,
 			atomic_set(&mtk_crtc->esd_ctx->target_time, 0);
 		mtk_drm_idlemgr_leave_idle_nolock(crtc);
 		idlemgr_ctx->is_idle = 0;
+		mtk_drm_idle_state_notify(crtc);
 
 		/* wake up idlemgr process to monitor next idle state */
 		wake_up_interruptible(&idlemgr->idlemgr_wq);
@@ -414,6 +415,7 @@ static int mtk_drm_idlemgr_monitor_thread(void *data)
 			if (!vblank || atomic_read(&vblank->refcount) == 0) {
 				mtk_drm_idlemgr_enter_idle_nolock(crtc);
 				idlemgr_ctx->is_idle = 1;
+				mtk_drm_idle_state_notify(crtc);
 				idlemgr_ctx->idle_vblank_check_internal = 0;
 				if (mtk_crtc->esd_ctx) {
 					atomic_set(&mtk_crtc->esd_ctx->target_time, 1);

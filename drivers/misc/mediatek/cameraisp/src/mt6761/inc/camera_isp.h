@@ -772,7 +772,9 @@ struct ISP_PM_QOS_INFO_STRUCT {
 	unsigned int       bw_value;
 	unsigned int       module;
 	unsigned int       fps;
+#ifndef CONFIG_MTK_CAMERA_ISP_PM_QOS_NO_PORT_BW
 	struct ISP_BW      port_bw[_rt_dma_max_]; /* For k510 */
+#endif
 };
 
 /* struct for enqueue/dequeue control in ihalpipe wrapper */
@@ -1003,7 +1005,9 @@ enum ISP_CMD_ENUM {
 	ISP_CMD_SET_PM_QOS_INFO,
 	ISP_CMD_SET_ISPCLK,
 	ISP_CMD_GET_ISPCLK,
+#ifndef CONFIG_MTK_CAMERA_ISP_NO_CLR_ISPCLK
 	ISP_CMD_CLR_ISPCLK,
+#endif
 	ISP_CMD_WAKELOCK_CTRL,
 	ISP_CMD_GET_VSYNC_CNT,
 	ISP_CMD_RESET_VSYNC_CNT,
@@ -1080,8 +1084,10 @@ enum ISP_CMD_ENUM {
 	_IOWR(ISP_MAGIC, ISP_CMD_SET_ISPCLK, unsigned int)
 #define ISP_GET_ISPCLK \
 	_IOWR(ISP_MAGIC, ISP_CMD_GET_ISPCLK, unsigned int)
+#ifndef CONFIG_MTK_CAMERA_ISP_NO_CLR_ISPCLK
 #define ISP_CLR_ISPCLK \
 	_IOWR(ISP_MAGIC, ISP_CMD_CLR_ISPCLK, unsigned int)
+#endif
 #define ISP_REGISTER_IRQ_USER_KEY \
 	_IOR(ISP_MAGIC, ISP_CMD_REGISTER_IRQ_USER_KEY, \
 		struct ISP_REGISTER_USERKEY_STRUCT)

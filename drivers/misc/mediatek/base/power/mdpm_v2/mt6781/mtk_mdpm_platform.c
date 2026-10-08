@@ -80,7 +80,7 @@ static struct tx_power mdpm_tx_pwr[TX_DBM_NUM] = {
 };
 
 static int get_md1_tx_power_by_rat(u32 *dbm_mem, u32 *old_dbm_mem,
-	enum tx_rat_type rat, enum mdpm_power_type power_type,
+	unsigned int rat, unsigned int power_type,
 	struct md_power_status *md_power_s);
 
 static struct mdpm_scenario mdpm_scen[SCENARIO_NUM] = {
@@ -772,7 +772,7 @@ static int get_md1_tx_power_by_table(u32 *dbm_mem, u32 *old_dbm_mem,
 }
 
 static int get_md1_tx_power_by_rat(u32 *dbm_mem, u32 *old_dbm_mem,
-	enum tx_rat_type rat, enum mdpm_power_type power_type,
+	unsigned int rat, unsigned int power_type,
 	struct md_power_status *md_power_s)
 {
 	int power;

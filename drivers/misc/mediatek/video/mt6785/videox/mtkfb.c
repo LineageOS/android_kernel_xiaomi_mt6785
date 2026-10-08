@@ -42,6 +42,7 @@
 #include "disp_drv_log.h"
 #include "disp_lcm.h"
 #include "mtkfb.h"
+#include "mtkfb_idle_state.h"
 #include "mtkfb_console.h"
 #include "mtkfb_fence.h"
 #include "mtkfb_info.h"
@@ -2735,6 +2736,7 @@ static int mtkfb_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 	DISPMSG("register_framebuffer done\n");
+	mtkfb_idle_state_init(fbi->dev);
 
 #if defined(CONFIG_MTK_DUAL_DISPLAY_SUPPORT) && \
 	(CONFIG_MTK_DUAL_DISPLAY_SUPPORT == 2)

@@ -596,7 +596,9 @@ struct ISP_PM_QOS_INFO_STRUCT {
 	unsigned int       bw_value;
 	unsigned int       module;
 	unsigned int       fps;
+#ifndef CONFIG_MTK_CAMERA_ISP_PM_QOS_NO_PORT_BW
 	struct ISP_BW      port_bw[_cam_max_]; /* For k510 compatible */
+#endif
 };
 
 /*******************************************************************************

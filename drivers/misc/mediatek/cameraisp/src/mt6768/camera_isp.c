@@ -14890,6 +14890,11 @@ LB_CAMA_SOF_IGNORE:
 	spin_unlock(&(IspInfo.SpinLockIrq[module]));
 	/*  */
 	if (IrqStatus & SOF_INT_ST) {
+#ifdef CONFIG_MTK_CAMERA_ISP_SKIP_VIR_CQCNT_CHECK
+		wake_up_interruptible(&IspInfo.WaitQHeadCam
+			[ISP_GetWaitQCamIndex(module)]
+			[ISP_WAITQ_HEAD_IRQ_SOF]);
+#else
 		if( (ISP_RD32(CAM_REG_CTL_SPARE2(reg_module))%0x100) != g_virtual_cq_cnt_a){
 			IRQ_LOG_KEEPER(module, m_CurrentPPB, _LOG_INF,
 				"CAMA PHY cqcnt:%d != VIR cqcnt:%d\n",
@@ -14904,6 +14909,7 @@ LB_CAMA_SOF_IGNORE:
 			[ISP_GetWaitQCamIndex(module)]
 			[ISP_WAITQ_HEAD_IRQ_SOF]);
 		}
+#endif
 	}
 	if (IrqStatus & SW_PASS1_DON_ST) {
 		wake_up_interruptible(&IspInfo.WaitQHeadCam
@@ -15510,6 +15516,11 @@ LB_CAMB_SOF_IGNORE:
 	spin_unlock(&(IspInfo.SpinLockIrq[module]));
 	/*  */
 	if (IrqStatus & SOF_INT_ST) {
+#ifdef CONFIG_MTK_CAMERA_ISP_SKIP_VIR_CQCNT_CHECK
+		wake_up_interruptible(&IspInfo.WaitQHeadCam
+			[ISP_GetWaitQCamIndex(module)]
+			[ISP_WAITQ_HEAD_IRQ_SOF]);
+#else
 		if( (ISP_RD32(CAM_REG_CTL_SPARE2(reg_module))%0x100) != g_virtual_cq_cnt_b){
 			IRQ_LOG_KEEPER(module, m_CurrentPPB, _LOG_INF,
 				"CAMB PHY cqcnt:%d != VIR cqcnt:%d\n",
@@ -15524,6 +15535,7 @@ LB_CAMB_SOF_IGNORE:
 			[ISP_GetWaitQCamIndex(module)]
 			[ISP_WAITQ_HEAD_IRQ_SOF]);
 		}
+#endif
 	}
 	if (IrqStatus & SW_PASS1_DON_ST) {
 		wake_up_interruptible(&IspInfo.WaitQHeadCam

@@ -235,9 +235,8 @@ int dcm_big_core(int on)
 	return 0;
 }
 
-int dcm_stall_preset(void)
+void dcm_stall_preset(void)
 {
-	return 0;
 }
 
 int dcm_stall(int on)
@@ -348,7 +347,7 @@ struct DCM dcm_array[NR_DCM_TYPE] = {
 	 .typeid = STALL_DCM_TYPE,
 	 .name = "STALL_DCM",
 	 .func = (DCM_FUNC) dcm_stall,
-	 .preset_func = (DCM_PRESET_FUNC) dcm_stall_preset,
+	 .preset_func = dcm_stall_preset,
 	 .current_state = STALL_DCM_ON,
 	 .default_state = STALL_DCM_ON,
 	 .disable_refcnt = 0,

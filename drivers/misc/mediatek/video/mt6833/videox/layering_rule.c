@@ -362,15 +362,42 @@ lr_unset_disp_rsz_attr(struct disp_layer_info *disp_info, int disp_idx)
 {
 	struct layer_config *lc = &disp_info->input_config[disp_idx][0];
 
-	if (l_rule_info.disp_path == HRT_PATH_RPO_L0 &&
-	    has_layer_cap(lc, MDP_RSZ_LAYER) &&
-	    has_layer_cap(lc, DISP_RSZ_LAYER)) {
+	int i;
+
+	if (l_rule_info.disp_path != HRT_PATH_RPO_L0 ||
+	    !has_layer_cap(lc, DISP_RSZ_LAYER))
+		return false;
+
+	if (has_layer_cap(lc, MDP_RSZ_LAYER)) {
 		lc->layer_caps &= ~DISP_RSZ_LAYER;
 		l_rule_info.disp_path = HRT_PATH_GENERAL;
 		l_rule_info.layer_tb_idx = HRT_TB_TYPE_GENERAL;
 		return true;
 	}
-	return false;
+
+	/*
+	 * RPO costs an OVL layer, so with too many layers the topmost
+	 * (usually animating) ones get rolled back to GPU every frame.
+	 * Compose the resized bottom layer (usually the static wallpaper)
+	 * with GPU instead, as long as the GLES range stays contiguous.
+	 */
+	if (disp_info->gles_head[disp_idx] > 1)
+		return false;
+
+	rollback_resize_layer_to_GPU_range(disp_info, disp_idx, 0, 0);
+	if (disp_info->gles_head[disp_idx] != 0)
+		return false;
+
+	for (i = 1; i < disp_info->layer_num[disp_idx]; i++) {
+		if (disp_info->input_config[disp_idx][i].ext_sel_layer == 0)
+			disp_info->input_config[disp_idx][i].ext_sel_layer = -1;
+	}
+
+	lc->layer_caps &= ~DISP_RSZ_LAYER;
+	l_rule_info.scale_rate = HRT_SCALE_NONE;
+	l_rule_info.disp_path = HRT_PATH_GENERAL;
+	l_rule_info.layer_tb_idx = HRT_TB_TYPE_GENERAL;
+	return true;
 }
 
 static void lr_gpu_change_rsz_info(void)
