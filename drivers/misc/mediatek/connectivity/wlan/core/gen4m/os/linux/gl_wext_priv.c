@@ -161,8 +161,7 @@ reqExtSetConfiguration(IN struct GLUE_INFO *prGlueInfo,
 #endif
 
 static uint32_t
-reqExtSetAcpiDevicePowerState(IN struct GLUE_INFO
-			      *prGlueInfo,
+reqExtSetAcpiDevicePowerState(IN void *pvGlueInfo,
 			      IN void *pvSetBuffer, IN uint32_t u4SetBufferLen,
 			      OUT uint32_t *pu4SetInfoLen);
 
@@ -247,7 +246,7 @@ static struct WLAN_REQ_ENTRY arWlanOidReqTable[] = {
 		TRUE, FALSE, ENUM_OID_GLUE_EXTENSION,
 		sizeof(enum PARAM_DEVICE_POWER_STATE),
 		NULL,
-		(PFN_OID_HANDLER_FUNC_REQ) reqExtSetAcpiDevicePowerState
+		reqExtSetAcpiDevicePowerState
 	}
 	,
 
@@ -3709,11 +3708,11 @@ reqExtSetConfiguration(IN struct GLUE_INFO *prGlueInfo,
  */
 /*----------------------------------------------------------------------------*/
 static uint32_t
-reqExtSetAcpiDevicePowerState(IN struct GLUE_INFO
-			      *prGlueInfo,
+reqExtSetAcpiDevicePowerState(IN void *pvGlueInfo,
 			      IN void *pvSetBuffer, IN uint32_t u4SetBufferLen,
 			      OUT uint32_t *pu4SetInfoLen)
 {
+	struct GLUE_INFO *prGlueInfo = pvGlueInfo;
 	uint32_t rStatus = WLAN_STATUS_SUCCESS;
 
 	ASSERT(prGlueInfo);
