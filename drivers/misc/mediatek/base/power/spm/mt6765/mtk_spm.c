@@ -28,12 +28,6 @@
 #include <mtk_idle_fs/mtk_idle_sysfs.h>
 DEFINE_SPINLOCK(__spm_lock);
 
-void __attribute__ ((weak)) mtk_idle_cond_check_init(void)
-{
-	aee_sram_printk("NO %s !!!\n", __func__);
-	pr_info("[SPM] NO %s !!!\n", __func__);
-}
-
 /* Note: implemented in mtk_spm_dram.c */
 int __attribute__ ((weak)) spm_get_spmfw_idx(void)
 {
