@@ -4645,6 +4645,8 @@ int suspend_to_full_roi(void)
 	return ret;
 }
 
+static unsigned int last_bl_level;
+
 int primary_display_suspend(void)
 {
 	enum DISP_STATUS ret = DISP_STATUS_OK;
@@ -4824,6 +4826,8 @@ int primary_display_suspend(void)
 #endif
 
 done:
+	/* The LCM backlight state is unknown after resume */
+	last_bl_level = UINT_MAX;
 	primary_set_state(DISP_SLEPT);
 
 	if (primary_display_get_power_mode_nolock() == DOZE_SUSPEND)
@@ -8055,7 +8059,6 @@ int _set_backlight_by_cpu(unsigned int level)
 int primary_display_setbacklight(unsigned int level)
 {
 	int ret = 0;
-	static unsigned int last_level;
 	bool aal_is_support = disp_aal_is_support();
 
 	DISPFUNC();
@@ -8065,7 +8068,7 @@ int primary_display_setbacklight(unsigned int level)
 		return 0;
 	}
 
-	if (last_level == level)
+	if (last_bl_level == level)
 		return 0;
 
 	mmprofile_log_ex(ddp_mmp_get_events()->primary_set_bl,
@@ -8094,7 +8097,7 @@ int primary_display_setbacklight(unsigned int level)
 		} else {
 			_set_backlight_by_cpu(level);
 		}
-		last_level = level;
+		last_bl_level = level;
 	}
 
 	if (aal_is_support == false) {
