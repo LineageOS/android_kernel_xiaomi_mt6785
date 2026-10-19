@@ -21,14 +21,15 @@
 
 struct md_rf_notify_struct {
 	unsigned int bit;
-	void (*notify_func)(unsigned int para0, unsigned int para1);
+	int (*notify_func)(int para0, unsigned int para1);
 	const char *module_name;
 };
 
 #define MD_RF_NOTIFY(bit, func, name) \
-	__weak void func(unsigned int para0, unsigned int para1) \
+	__weak int func(int para0, unsigned int para1) \
 	{ \
 		pr_debug("[ccci1/SYS]weak %s", __func__); \
+		return 0; \
 	}
 #include "mdrf_notify_list.h"
 
