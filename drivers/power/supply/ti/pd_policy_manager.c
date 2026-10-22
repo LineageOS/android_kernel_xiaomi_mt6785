@@ -931,7 +931,7 @@ static void usbpd_pm_update_sw_status(struct usbpd_pm *pdpm)
 
 static void usbpd_pm_evaluate_src_caps(struct usbpd_pm *pdpm)
 {
-	struct pps_cap_bq cap;
+	struct pps_cap_bq cap = {0};
 	int ret = 0, i = 0, retry_cnt = 0;
 	union power_supply_propval pval = {0, };
 
@@ -1361,6 +1361,7 @@ static int usbpd_pm_sm(struct usbpd_pm *pdpm)
 			pr_info("adapter_set_cap_start_bq failed, switch to main charger!\n");
 			retry_cnt = 0;
 			usbpd_pm_move_state(pdpm, PD_PM_STATE_FC2_EXIT);
+			break;
 		}
 
 		usbpd_pm_move_state(pdpm, PD_PM_STATE_FC2_ENTRY_2);
@@ -1655,7 +1656,6 @@ static void cp_psy_change_work(struct work_struct *work)
 	if (!ac_pres && pdpm->cp.vbus_pres)
 		schedule_delayed_work(&pdpm->pm_work, 0);
 #endif
-	pdpm->psy_change_running = false;
 }
 
 static void usb_psy_change_work(struct work_struct *work)
@@ -1687,20 +1687,20 @@ static void usb_psy_change_work(struct work_struct *work)
 			POWER_SUPPLY_PROP_TYPEC_POWER_ROLE, &val);
 	if (ret) {
 		pr_err("Failed to read typec power role\n");
-		goto out;
+		return;
 	}
 
 	pr_debug("%s power role is %d.\n", __func__, val.intval);
 	if (val.intval != 1 &&
 			val.intval != 3 &&
 			val.intval != 5)
-		goto out;
+		return;
 
 	ret = power_supply_get_property(pdpm->usb_psy,
 					POWER_SUPPLY_PROP_PD_TYPE, &val);
 	if (ret) {
 		pr_err("Failed to read pd type!\n");
-		goto out;
+		return;
 	}
 	if (val.intval == POWER_SUPPLY_PD_APDO) {
 		pps_support = true;
@@ -1714,7 +1714,7 @@ static void usb_psy_change_work(struct work_struct *work)
 				POWER_SUPPLY_PROP_PD_AUTHENTICATION, &pd_auth_val);
 	if (ret) {
 		pr_err("Failed to read typec power role\n");
-		goto out;
+		return;
 	}
 
 	pr_debug("%s pd_auth_val.intval is %d.\n", __func__, pd_auth_val.intval);
@@ -1733,8 +1733,6 @@ static void usb_psy_change_work(struct work_struct *work)
 		usbpd_pd_contact(pdpm, false);
 		pr_debug("this is commom pd TA.\n");
 	}
-out:
-	pdpm->psy_change_running = false;
 }
 
 static int usbpd_psy_notifier_cb(struct notifier_block *nb,
@@ -1742,7 +1740,6 @@ static int usbpd_psy_notifier_cb(struct notifier_block *nb,
 {
 	struct usbpd_pm *pdpm = container_of(nb, struct usbpd_pm, nb);
 	struct power_supply *psy = data;
-	unsigned long flags;
 
 	if (event != PSY_EVENT_PROP_CHANGED)
 		return NOTIFY_OK;
@@ -1754,18 +1751,10 @@ static int usbpd_psy_notifier_cb(struct notifier_block *nb,
 	if (!pdpm->cp_psy || !pdpm->usb_psy)
 		return NOTIFY_OK;
 
-	if (psy == pdpm->cp_psy || psy == pdpm->usb_psy) {
-		spin_lock_irqsave(&pdpm->psy_change_lock, flags);
-		if (!pdpm->psy_change_running) {
-			pdpm->psy_change_running = true;
-			pr_debug("%s psy_change is running\n", __func__);
-			if (psy == pdpm->cp_psy)
-				schedule_work(&pdpm->cp_psy_change_work);
-			else
-				schedule_work(&pdpm->usb_psy_change_work);
-		}
-		spin_unlock_irqrestore(&pdpm->psy_change_lock, flags);
-	}
+	if (psy == pdpm->cp_psy)
+		schedule_work(&pdpm->cp_psy_change_work);
+	else if (psy == pdpm->usb_psy)
+		schedule_work(&pdpm->usb_psy_change_work);
 
 	return NOTIFY_OK;
 }
@@ -1850,8 +1839,6 @@ static int usbpd_pm_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, pdpm);
 
 	ch1_dev = get_charger_by_name("primary_chg");
-
-	spin_lock_init(&pdpm->psy_change_lock);
 
 	usbpd_check_cp_psy(pdpm);
 	usbpd_check_cp_sec_psy(pdpm);

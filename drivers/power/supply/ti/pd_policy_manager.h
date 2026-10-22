@@ -212,10 +212,8 @@ struct usbpd_pm {
 
 	struct notifier_block nb;
 
-	bool   psy_change_running;
 	struct work_struct cp_psy_change_work;
 	struct work_struct usb_psy_change_work;
-	spinlock_t psy_change_lock;
 
 	struct votable		*fcc_votable;
 	struct power_supply *cp_psy;
