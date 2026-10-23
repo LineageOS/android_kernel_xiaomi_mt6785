@@ -577,8 +577,7 @@ static int get_hw_btspdchg_temp(void)
 #endif
 
 	if(NULL == thermistor_ch5)
-		return 0;	
-	pr_err("%s	%d thermistor_ch5 not NULL ...... \n", __func__, __LINE__);
+		return 0;
 
 
 #if defined(CONFIG_MEDIATEK_MT6577_AUXADC)
@@ -590,8 +589,8 @@ static int get_hw_btspdchg_temp(void)
 		return ret;
 	}
 
-	/*val * 1500 / 4096*/
-	ret = (val * 1500) >> 12;
+	/* mt6577_auxadc already returns millivolts for processed reads */
+	ret = val;
 #else
 
 #if defined(APPLY_AUXADC_CALI_DATA)
