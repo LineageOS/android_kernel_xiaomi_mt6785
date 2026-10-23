@@ -2384,7 +2384,7 @@ int force_get_tbat_internal(bool update)
 	if(set_temp_enabled == 1)
 		bat_temperature_val = charger_manager_get_prop_set_temp_num();
 
-	bm_err("[force_get_tbat][err] bat_temperature_val:%d , set_temp_enabled :%d\n",bat_temperature_val,set_temp_enabled);
+	bm_debug("[force_get_tbat] bat_temperature_val:%d , set_temp_enabled :%d\n",bat_temperature_val,set_temp_enabled);
 
 	gm.tbat_precise = bat_temperature_val;
 
@@ -2450,7 +2450,7 @@ int force_get_tbat(bool update)
 	}
 
 	gm.ntc_disable_nafg = false;
-	bm_err("[%s] t:%d precise:%d\n", __func__,
+	bm_debug("[%s] t:%d precise:%d\n", __func__,
 		bat_temperature_val, gm.tbat_precise);
 
 	return bat_temperature_val;
