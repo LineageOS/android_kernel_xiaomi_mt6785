@@ -304,7 +304,12 @@ static int mtkfb_blank(int blank_mode, struct fb_info *info)
 	if ((info == prim_fbi) && (blank_mode == FB_BLANK_UNBLANK) &&
 		atomic_read(&prim_panel_is_on)) {
 		atomic_set(&prim_panel_is_on, false);
-		cancel_delayed_work_sync(&prim_panel_work);
+		/*
+		 * Callers hold console_lock, which prim_panel_off_delayed_work
+		 * also takes, so a sync cancel deadlocks. A running work item
+		 * sees prim_panel_is_on == false and does nothing.
+		 */
+		cancel_delayed_work(&prim_panel_work);
 		pr_debug("%s cancle delayed work, because the fpc is unlocked suceessfully fp\n", __func__);
 		return 0;
 	}
