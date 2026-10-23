@@ -1595,7 +1595,6 @@ static int ln8000_probe(struct i2c_client *client, const struct i2c_device_id *i
         return -ENODEV;
     }
     dev_info(&client->dev, "device id=0x%x\n", ret);
-    set_ln8000_load_flag(true);
 
     info = devm_kzalloc(&client->dev, sizeof(struct ln8000_info), GFP_KERNEL);
     if (info == NULL) {
@@ -1603,15 +1602,12 @@ static int ln8000_probe(struct i2c_client *client, const struct i2c_device_id *i
         return -ENOMEM;
     }
     info->dev_role = ln8000_get_dev_role(client);
-    if (IS_ERR_VALUE((unsigned long)info->dev_role)) {
-        kfree(info);
+    if (IS_ERR_VALUE((unsigned long)info->dev_role))
         return -EINVAL;
-    }
 
     info->pdata = devm_kzalloc(&client->dev, sizeof(struct ln8000_platform_data), GFP_KERNEL);
     if (info->pdata == NULL) {
        ln_err("fail to alloc devm for ln8000_platform_data\n");
-       kfree(info);
        return -ENOMEM;
     }
     info->dev = &client->dev;
@@ -1657,7 +1653,7 @@ static int ln8000_probe(struct i2c_client *client, const struct i2c_device_id *i
 		if (ret < 0) {
 			ln_err("request irq for irq=%d failed, ret =%d\n",
 							client->irq, ret);
-            goto err_wakeup;
+            goto err_gpio;
 		}
 		enable_irq_wake(client->irq);
 	} else {
@@ -1668,40 +1664,42 @@ static int ln8000_probe(struct i2c_client *client, const struct i2c_device_id *i
 
     ret = ln8000_create_debugfs_entries(info);
     if (IS_ERR_VALUE((unsigned long)ret)) {
-       goto err_wakeup;
+       goto err_irq;
     }
 
 	/* 2021.03.26 longcheer jiangshitian HMI_M306_A01-626 start */
 	ret = sysfs_create_group(&info->dev->kobj, &ln8000_attr_group);
 	if (ret) {
 		pr_err("ln8000 failed to register sysfs. err: %d\n", ret);
-		goto err_wakeup;
+		goto err_debugfs;
 	}
 	/* 2021.03.26 longcheer jiangshitian HMI_M306_A01-626 end */
 
     determine_initial_status(info);
 
+    set_ln8000_load_flag(true);
+
     return 0;
 
-err_wakeup:
-    if (LN8000_IS_PRIMARY(info) && client->irq) {
-       free_irq(client->irq, info);
-       if (info->pdata->irq_gpio) {
-           gpiod_put(info->pdata->irq_gpio);
-       }
+    /* info, pdata, psy_chg and the IRQ are devm-managed */
+err_debugfs:
+    debugfs_remove_recursive(info->debug_root);
+err_irq:
+    device_init_wakeup(info->dev, 0);
+    if (client->irq) {
+       disable_irq_wake(client->irq);
+       devm_free_irq(&client->dev, client->irq, info);
     }
+err_gpio:
+    if (LN8000_IS_PRIMARY(info) && info->pdata->irq_gpio)
+       gpiod_put(info->pdata->irq_gpio);
 err_psy:
-    power_supply_unregister(info->psy_chg);
-
 err_cleanup:
     i2c_set_clientdata(client, NULL);
     mutex_destroy(&info->data_lock);
     mutex_destroy(&info->i2c_lock);
     mutex_destroy(&info->irq_lock);
 err_devmem:
-    kfree(info->pdata);
-    kfree(info);
-
     return ret;
 }
 
@@ -1715,22 +1713,18 @@ static int ln8000_remove(struct i2c_client *client)
 	sysfs_remove_group(&info->dev->kobj, &ln8000_attr_group);
 	/* 2021.03.26 longcheer jiangshitian HMI_M306_A01-626 end */
 
-    if (LN8000_IS_PRIMARY(info) && client->irq) {
-       free_irq(client->irq, info);
-       if (info->pdata->irq_gpio) {
-           gpiod_put(info->pdata->irq_gpio);
-       }
-    }
+    /* info, pdata and psy_chg are devm-managed */
+    if (client->irq)
+       devm_free_irq(&client->dev, client->irq, info);
+    if (LN8000_IS_PRIMARY(info) && info->pdata->irq_gpio)
+       gpiod_put(info->pdata->irq_gpio);
 
-    power_supply_unregister(info->psy_chg);
+    set_ln8000_load_flag(false);
     i2c_set_clientdata(info->client, NULL);
 
     mutex_destroy(&info->data_lock);
     mutex_destroy(&info->i2c_lock);
     mutex_destroy(&info->irq_lock);
-
-    kfree(info->pdata);
-    kfree(info);
 
     return 0;
 }
