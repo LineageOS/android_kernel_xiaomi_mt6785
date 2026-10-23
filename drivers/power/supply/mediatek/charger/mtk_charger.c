@@ -1349,7 +1349,9 @@ void charger_manager_set_prop_system_temp_level(int temp_level)
     power_supply_get_property(pinfo->usb_psy,
 			POWER_SUPPLY_PROP_REAL_TYPE, &real_type);
 
-	if (temp_level > pinfo->system_temp_level_max - 1)
+	if (temp_level < 0)
+		pinfo->system_temp_level = 0;
+	else if (temp_level > pinfo->system_temp_level_max - 1)
 		pinfo->system_temp_level = pinfo->system_temp_level_max - 1;
 	else
 		pinfo->system_temp_level = temp_level;
