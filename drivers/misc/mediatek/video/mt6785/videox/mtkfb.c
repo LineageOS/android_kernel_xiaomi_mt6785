@@ -334,6 +334,15 @@ static int mtkfb_blank(int blank_mode, struct fb_info *info)
 		break;
 	case FB_BLANK_POWERDOWN:
 		DISPDBG("%s mtkfb_early_suspend\n", __func__);
+		/*
+		 * Drop any pending fingerprint unblank, otherwise the next
+		 * FB_BLANK_UNBLANK takes the early return above and the
+		 * display is never resumed.
+		 */
+		if (info == prim_fbi) {
+			atomic_set(&prim_panel_is_on, false);
+			cancel_delayed_work(&prim_panel_work);
+		}
 		if (bypass_blank) {
 			DISP_PR_INFO("FB_BLANK_POWERDOWN bypass_blank %d\n",
 				     bypass_blank);
