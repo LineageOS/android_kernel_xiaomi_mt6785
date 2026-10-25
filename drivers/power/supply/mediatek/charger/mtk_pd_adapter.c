@@ -86,6 +86,7 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 	struct mtk_pd_adapter_info *pinfo;
 	int ret = 0;
 	union power_supply_propval pd_authentication = {0,};
+	union power_supply_propval pd_verify = {0,};
 	struct power_supply *usb_psy = power_supply_get_by_name("usb");
 
 	if (!usb_psy) {
@@ -106,6 +107,7 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 			pinfo->adapter_dev->uvdm_state = USBPD_UVDM_DISCONNECT;
 			pinfo->adapter_dev->verifed = 0;
 			pinfo->adapter_dev->verify_process = 0;
+			power_supply_set_property(usb_psy, POWER_SUPPLY_PROP_PD_VERIFY_IN_PROCESS, &pd_verify);
 			notify_adapter_event(MTK_PD_ADAPTER,
 				MTK_PD_CONNECT_NONE, NULL);
 			break;
@@ -118,6 +120,7 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 			pinfo->adapter_dev->verify_process = 0;
 			pd_authentication.intval = 0;
 			ret = power_supply_set_property(usb_psy, POWER_SUPPLY_PROP_PD_AUTHENTICATION, &pd_authentication);
+			power_supply_set_property(usb_psy, POWER_SUPPLY_PROP_PD_VERIFY_IN_PROCESS, &pd_verify);
 			chr_err("PD HARD_RESET:%d %s\n", __LINE__, __func__);
 			notify_adapter_event(MTK_PD_ADAPTER,
 				MTK_PD_CONNECT_HARD_RESET, NULL);
